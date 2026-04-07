@@ -1,0 +1,102 @@
+<!-- ══════ SHOP ══════ -->
+<div id="shopSection">
+
+  <div class="toolbar">
+    <span class="toolbar-label">
+      All
+      {% assign col = collections.all %}
+      <span style="font-weight:300;opacity:.45;">({{ col.products_count }})</span>
+    </span>
+    <div class="toolbar-sort">
+      <span>Sort</span>
+      <select class="sort-sel" id="sortSel" onchange="doSort()">
+        <option value="">&#8212;</option>
+        <option value="lh">Low to High</option>
+        <option value="hl">High to Low</option>
+        <option value="az">A &#x2013; Z</option>
+        <option value="za">Z &#x2013; A</option>
+      </select>
+    </div>
+  </div>
+
+  {% paginate collections.all.products by 12 %}
+
+    <div class="grid" id="productGrid">
+      {% if collections.all.products_count > 0 %}
+        {% for product in collections.all.products %}
+          {% render 'product-card', product: product %}
+        {% endfor %}
+      {% else %}
+        <div style="grid-column:1/-1;padding:80px;text-align:center;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#888;">
+          No products yet — add them in Shopify Admin
+        </div>
+      {% endif %}
+    </div><!-- /grid -->
+
+    <!-- LOAD MORE -->
+    {% if paginate.next %}
+      <div class="load-more-wrap" id="loadMoreWrap">
+        <button
+          class="load-more-btn"
+          id="loadMoreBtn"
+          data-next-url="{{ paginate.next.url }}&view=grid"
+          onclick="shopifyLoadMore(this)">
+          Load More ({{ paginate.next.items_count }} remaining)
+        </button>
+      </div>
+    {% endif %}
+
+  {% endpaginate %}
+
+  <!-- BRAND STRIP -->
+  <div class="brand-strip">
+    <div class="brand-strip-inner">
+      <div class="bs-img bs-img-left">
+        <img src="{{ 'brand-left.png' | asset_url }}" alt="The Yard Sale">
+        <div class="bs-cap">The Yard Sale &mdash; NYC</div>
+      </div>
+      <div class="bs-mid">
+        <p class="bs-brand">Hawks Closet</p>
+        <p class="bs-copy">One person. One eye. New Jersey-based, archive-minded. Every piece sourced by hand &mdash; thrift runs, estate sales, yard sales at 6am. No filler, no bulk. Just the real thing.</p>
+        <span class="bs-link" onclick="openAbout()">@hawks.vtg</span>
+      </div>
+      <div class="bs-img">
+        <img src="{{ 'brand-right.jpg' | asset_url }}" alt="Drop day">
+        <div class="bs-cap">Drop day</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h4>Hawks Closet</h4>
+        <a href="https://instagram.com/hawks.vtg" target="_blank">@hawks.vtg</a>
+        <a href="https://hawkscloset.com" target="_blank">hawkscloset.com</a>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <button onclick="scrollToShop()">New Arrivals</button>
+        <button onclick="scrollToShop()">Archive</button>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <button onclick="openAbout()">About</button>
+        <a href="mailto:hawkscloset@gmail.com">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; {{ 'now' | date: '%Y' }} Hawks Closet</p>
+      <p>All rights reserved</p>
+    </div>
+  </footer>
+
+</div><!-- /shopSection -->
+
+{% schema %}
+{
+  "name": "Homepage",
+  "settings": []
+}
+{% endschema %}

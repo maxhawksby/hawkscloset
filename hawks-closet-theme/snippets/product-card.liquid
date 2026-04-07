@@ -1,0 +1,67 @@
+{% comment %}
+  Product card snippet.
+  Usage: {% render 'product-card', product: product %}
+
+  Reads these Shopify product metafields (set them in Admin → Settings → Custom data → Products):
+    custom.condition  — e.g. "Deadstock", "Excellent Used"
+    custom.size       — e.g. "M", "L", "XL"
+    custom.era        — e.g. "1994", "AW01"
+    custom.material   — e.g. "Cotton Canvas", "100% Wool"
+{% endcomment %}
+
+{% assign sold = false %}
+{% unless product.available %}
+  {% assign sold = true %}
+{% endunless %}
+
+{% assign price_dollars = product.price | divided_by: 100 %}
+
+{% assign condition = product.metafields.custom.condition.value | default: '' %}
+{% assign size      = product.metafields.custom.size.value      | default: '' %}
+{% assign era       = product.metafields.custom.era.value       | default: '' %}
+{% assign material  = product.metafields.custom.material.value  | default: '' %}
+
+{% if product.featured_image %}
+  {% assign img_url = product.featured_image | image_url: width: 800 %}
+{% else %}
+  {% assign img_url = '' %}
+{% endif %}
+
+<div class="grid-cell{% if sold %} sold{% endif %}"
+  data-id="{{ product.id }}"
+  data-variant-id="{{ product.variants.first.id }}"
+  data-price="{{ price_dollars }}"
+  data-name="{{ product.title | escape }}"
+  data-sold="{{ sold }}"
+  data-cond="{{ condition | escape }}"
+  data-size="{{ size | escape }}"
+  data-era="{{ era | escape }}"
+  data-material="{{ material | escape }}"
+  data-desc="{{ product.description | strip_html | escape }}"
+  data-img="{{ img_url }}"
+  onclick="openProduct(this)">
+
+  <div class="grid-img">
+    {% if product.featured_image %}
+      <img
+        src="{{ product.featured_image | image_url: width: 800 }}"
+        alt="{{ product.title | escape }}"
+        loading="lazy">
+    {% else %}
+      <div class="grid-ph">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/>
+          <path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/>
+          <circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/>
+        </svg>
+      </div>
+    {% endif %}
+    <div class="sold-tag"><span>Sold</span></div>
+  </div>
+
+  <div class="grid-info">
+    <p class="grid-name">{{ product.title | escape }}</p>
+    <p class="grid-price">${{ price_dollars }}</p>
+  </div>
+
+</div>

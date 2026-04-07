@@ -1,0 +1,14 @@
+{% comment %}
+  Minimal response for AJAX "Load More" requests.
+  Called via: /collections/all?page=N&view=grid
+  Returns only product cards + optional next-page button data.
+  No layout wrapper — appended directly into #productGrid via JS.
+{% endcomment %}
+{% paginate collections.all.products by 12 %}
+  {% for product in collections.all.products %}
+    {% render 'product-card', product: product %}
+  {% endfor %}
+  {% if paginate.next %}
+    <div id="nextPageUrl" data-url="{{ paginate.next.url }}&view=grid" style="display:none"></div>
+  {% endif %}
+{% endpaginate %}
