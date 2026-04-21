@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock Screen Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #111;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #fff;
+    min-height: 100vh;
+  }
+
+  .page-label {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #aaa;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    z-index: 100;
+    backdrop-filter: blur(6px);
+  }
+
+  /* ── Screen wrapper ── */
+  .screen {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* ── Background ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('/files/Background.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.5;
+  }
+  .bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+  }
+
+  /* ── Password — top left ── */
+  .pw-corner {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 200px;
+  }
+  .pw-corner-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* ── Logo — top center ── */
+  .logo-wrap {
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  .logo-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    white-space: nowrap;
+  }
+
+  /* ── Center block — timer + SMS as one unit ── */
+  .center-block {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 100%;
+    max-width: 480px;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  /* ── Countdown ── */
+  .countdown-section {
+    text-align: center;
+    width: 100%;
+  }
+
+  .countdown-eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 0.75rem;
+  }
+
+  .countdown-grid {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .countdown-num {
+    font-size: clamp(4.2rem, 12vw, 6.75rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    min-width: 2ch;
+    text-align: center;
+  }
+
+  .countdown-label {
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .countdown-sep {
+    font-size: clamp(3rem, 9vw, 5.25rem);
+    font-weight: 300;
+    color: rgba(255,255,255,0.2);
+    align-self: flex-start;
+    padding-top: 0.25rem;
+    line-height: 1;
+  }
+
+  .countdown-date {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+  }
+
+  /* ── SMS Section ── */
+  .sms-section {
+    width: 100%;
+    text-align: center;
+  }
+
+  .sms-headline {
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 0.4rem;
+  }
+
+  .sms-sub {
+    font-size: 0.62rem;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+  }
+
+  .sms-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  .mock-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.6);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.7rem 1rem;
+    width: 100%;
+    outline: none;
+  }
+
+  .mock-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    text-align: left;
+  }
+  .mock-consent-box {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    border: 1px solid rgba(255,255,255,0.25);
+    margin-top: 2px;
+    background: rgba(255,255,255,0.05);
+  }
+  .mock-consent-text {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.5;
+  }
+
+  .mock-btn-primary {
+    background: #fff;
+    color: #000;
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ── Password section ── */
+  .pw-section {
+    width: 100%;
+    padding-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 300px;
+  }
+
+  .pw-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    color: rgba(255,255,255,0.18);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .pw-divider::before, .pw-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .pw-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    width: 100%;
+    text-align: left;
+  }
+
+  .mock-pw-input {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.65rem 1rem;
+    width: 100%;
+    outline: none;
+  }
+
+  .mock-btn-ghost {
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.14);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 0.65rem 1rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .ig-line {
+    font-size: 0.62rem;
+    color: rgba(255,255,255,0.22);
+    margin-top: 0.25rem;
+  }
+  .ig-line a { color: rgba(255,255,255,0.35); text-decoration: none; }
+
+  /* annotation */
+  .note {
+    position: absolute;
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    color: #FFD700;
+    background: rgba(0,0,0,0.7);
+    padding: 3px 8px;
+    border: 1px solid rgba(255,215,0,0.4);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-label">Lock Screen Mockup — click anywhere on the background image to load it if needed</div>
+
+<div class="screen">
+  <div class="bg"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- Password — top left -->
+  <div class="pw-corner">
+    <span class="pw-corner-label">Early access</span>
+    <input class="mock-pw-input" type="password" placeholder="Password">
+    <div class="mock-btn-ghost">Enter →</div>
+  </div>
+
+  <!-- Logo — top center -->
+  <div class="logo-wrap">
+    <span class="logo-text">Hawks Closet</span>
+  </div>
+
+  <!-- Timer + SMS centered as one unit -->
+  <div class="center-block">
+
+    <div class="countdown-section">
+      <p class="countdown-eyebrow">Drop goes live in</p>
+      <div class="countdown-grid">
+        <div class="countdown-unit">
+          <span class="countdown-num" id="days">12</span>
+          <span class="countdown-label">Days</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-unit">
+          <span class="countdown-num" id="hours">07</span>
+          <span class="countdown-label">Hrs</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-unit">
+          <span class="countdown-num" id="mins">34</span>
+          <span class="countdown-label">Min</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-unit">
+          <span class="countdown-num" id="secs">51</span>
+          <span class="countdown-label">Sec</span>
+        </div>
+      </div>
+      <p class="countdown-date">April 24, 2026 — 12:00 PM EST</p>
+    </div>
+
+    <div class="sms-section">
+      <p class="sms-headline">Get notified when we drop.</p>
+      <p class="sms-sub">Drop your number — we'll text you the minute it goes live.</p>
+      <div class="sms-form">
+        <input class="mock-input" type="tel" placeholder="(201) 555-0100">
+        <label class="mock-consent">
+          <div class="mock-consent-box"></div>
+          <span class="mock-consent-text">I agree to receive recurring automated marketing text messages. Msg &amp; data rates may apply. Reply STOP to unsubscribe.</span>
+        </label>
+        <div class="mock-btn-primary">Notify me →</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Instagram — bottom center -->
+  <p class="ig-line" style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:10;">
+    Follow the drop — <a href="#">@hawks.vtg</a>
+  </p>
+</div>
+
+<script>
+  // Live countdown to April 24 2026 12:00 PM EST
+  function tick() {
+    var target = new Date('2026-04-24T12:00:00-05:00').getTime();
+    var now = Date.now();
+    var diff = target - now;
+    if (diff <= 0) {
+      document.getElementById('days').textContent = '00';
+      document.getElementById('hours').textContent = '00';
+      document.getElementById('mins').textContent = '00';
+      document.getElementById('secs').textContent = '00';
+      return;
+    }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('days').textContent  = String(d).padStart(2,'0');
+    document.getElementById('hours').textContent = String(h).padStart(2,'0');
+    document.getElementById('mins').textContent  = String(m).padStart(2,'0');
+    document.getElementById('secs').textContent  = String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
