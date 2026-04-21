@@ -17,7 +17,8 @@ function showToast(msg) {
 
 function scrollToShop() {
   var el = get('shopSection');
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  if (el) { el.scrollIntoView({ behavior: 'smooth' }); }
+  else { window.location.href = '/#shopSection'; }
 }
 
 /* ═══════════════════════════════════════
@@ -112,7 +113,6 @@ function openCart() {
   document.body.style.overflow = 'hidden';
   var body = get('cartBody');
   if (body) body.scrollTop = 0;
-  fetchCart();
 }
 function closeCart() {
   get('cartPanel').classList.remove('on');
@@ -191,16 +191,7 @@ function goCheckout() {
 ═══════════════════════════════════════ */
 function doSort() {
   var v = get('sortSel').value;
-
-  // Map to Shopify sort_by URL param for full accuracy
-  var sortMap = { lh: 'price-ascending', hl: 'price-descending', az: 'title-ascending', za: 'title-descending' };
-  if (v && sortMap[v]) {
-    window.location.href = '/collections/all?sort_by=' + sortMap[v];
-    return;
-  }
-
-  // Default (—) — reload without sort
-  if (!v) { window.location.href = '/collections/all'; return; }
+  window.location.href = v ? '/collections/all?sort_by=' + v : '/collections/all';
 }
 
 /* ═══════════════════════════════════════

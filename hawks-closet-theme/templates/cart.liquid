@@ -1,0 +1,166 @@
+{% comment %}
+  /cart page — rendered when a user navigates to /cart directly.
+  The site's primary cart UX is the slide-out panel in theme.liquid,
+  but Shopify requires this template to exist. This page provides a
+  full-page fallback that matches the site design.
+{% endcomment %}
+
+<div class="cart-page">
+  <div class="cart-page-inner">
+
+    <h1 class="cart-page-title">Cart</h1>
+
+    {% if cart.item_count == 0 %}
+      <div class="cart-page-empty">
+        <p>Your cart is empty.</p>
+        <a href="/" class="btn-inline">Back to shop &rarr;</a>
+      </div>
+
+    {% else %}
+      <div class="cart-page-items">
+        {% for item in cart.items %}
+          <div class="cart-page-row">
+            <div class="cart-page-thumb">
+              {% if item.image %}
+                <img src="{{ item.image | image_url: width: 160 }}" alt="{{ item.title | escape }}">
+              {% else %}
+                <div class="cart-page-ph">
+                  <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
+                    <rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/>
+                    <path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/>
+                    <circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/>
+                  </svg>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="cart-page-info">
+              <p class="cart-page-name">{{ item.title | escape }}</p>
+              {% unless item.variant.title == 'Default Title' %}
+                <p class="cart-page-variant">{{ item.variant.title | escape }}</p>
+              {% endunless %}
+              <p class="cart-page-price">{{ item.final_price | money }}</p>
+            </div>
+
+            <div class="cart-page-remove">
+              <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="cart-page-rm">Remove</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="cart-page-foot">
+        <div class="cart-page-sub">
+          <span>Subtotal</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <a href="/checkout" class="cart-page-checkout">Checkout &rarr;</a>
+        <a href="/" class="btn-inline">Continue Shopping</a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<style>
+  .cart-page {
+    padding: 3rem 2rem 5rem;
+    font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .cart-page-title {
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin: 0 0 2.5rem;
+    letter-spacing: 0.02em;
+  }
+  .cart-page-empty {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 3rem 0;
+    color: #666;
+    font-size: 0.82rem;
+  }
+  .cart-page-items {
+    border-top: 1px solid #e8e8e8;
+  }
+  .cart-page-row {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: 1.25rem;
+    align-items: start;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .cart-page-thumb img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    display: block;
+  }
+  .cart-page-ph {
+    width: 72px;
+    height: 72px;
+    background: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cart-page-name {
+    font-size: 0.82rem;
+    margin: 0 0 0.25rem;
+  }
+  .cart-page-variant {
+    font-size: 0.74rem;
+    color: #888;
+    margin: 0 0 0.25rem;
+  }
+  .cart-page-price {
+    font-size: 0.82rem;
+    margin: 0;
+  }
+  .cart-page-rm {
+    font-size: 0.72rem;
+    color: #999;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+  }
+  .cart-page-rm:hover { color: #000; }
+  .cart-page-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 2rem;
+  }
+  .cart-page-sub {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .cart-page-checkout {
+    display: block;
+    background: #000;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-align: center;
+    padding: 0.9rem 1rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .cart-page-checkout:hover { background: #222; }
+  .btn-inline {
+    font-size: 0.78rem;
+    color: #000;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-align: center;
+  }
+  .btn-inline:hover { color: #555; }
+</style>

@@ -1,1 +1,40 @@
-{}
+{
+  "general": {
+    "password_page": {
+      "login_form_heading": "Enter password",
+      "login_form_password_label": "Password",
+      "login_form_password_placeholder": "Password",
+      "login_form_submit": "Enter",
+      "login_form_error": "Wrong password. Please try again."
+    }
+  },
+  "cart": {
+    "general": {
+      "title": "Cart",
+      "empty": "Your cart is empty",
+      "checkout": "Checkout",
+      "continue_shopping": "Continue Shopping",
+      "subtotal": "Subtotal",
+      "remove": "Remove"
+    }
+  },
+  "products": {
+    "general": {
+      "add_to_cart": "Add to Cart",
+      "buy_now": "Buy Now",
+      "sold_out": "Sold Out",
+      "unavailable": "Unavailable"
+    }
+  },
+  "sections": {
+    "header": {
+      "menu": "Menu",
+      "cart": "Cart"
+    }
+  },
+  "404": {
+    "title": "Page not found",
+    "subtext": "The page you're looking for doesn't exist or has been moved.",
+    "link": "Back to shop"
+  }
+}

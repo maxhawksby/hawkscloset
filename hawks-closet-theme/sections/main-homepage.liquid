@@ -1,29 +1,35 @@
 <!-- ══════ SHOP ══════ -->
 <div id="shopSection">
 
+  {% assign col = collection | default: collections.all %}
+  {% assign current_sort = collection.sort_by | default: '' %}
+
   <div class="toolbar">
     <span class="toolbar-label">
       All
-      {% assign col = collections.all %}
       <span style="font-weight:300;opacity:.45;">({{ col.products_count }})</span>
     </span>
     <div class="toolbar-sort">
       <span>Sort</span>
       <select class="sort-sel" id="sortSel" onchange="doSort()">
-        <option value="">&#8212;</option>
-        <option value="lh">Low to High</option>
-        <option value="hl">High to Low</option>
-        <option value="az">A &#x2013; Z</option>
-        <option value="za">Z &#x2013; A</option>
+        <option value="" {% if current_sort == '' %}selected{% endif %}>&#8212;</option>
+        <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>Featured</option>
+        <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>Best Selling</option>
+        <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Low to High</option>
+        <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>High to Low</option>
+        <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A &#x2013; Z</option>
+        <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z &#x2013; A</option>
+        <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Date, Old to New</option>
+        <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Date, New to Old</option>
       </select>
     </div>
   </div>
 
-  {% paginate collections.all.products by 12 %}
+  {% paginate col.products by 12 %}
 
     <div class="grid" id="productGrid">
-      {% if collections.all.products_count > 0 %}
-        {% for product in collections.all.products %}
+      {% if col.products_count > 0 %}
+        {% for product in col.products %}
           {% render 'product-card', product: product %}
         {% endfor %}
       {% else %}
@@ -84,6 +90,7 @@
         <h4>Info</h4>
         <button onclick="openAbout()">About</button>
         <a href="mailto:hawkscloset@gmail.com">Contact</a>
+        <a href="/policies/privacy-policy">Privacy Policy</a>
       </div>
     </div>
     <div class="footer-bottom">

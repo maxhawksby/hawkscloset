@@ -6,5 +6,172 @@
     "theme_author": "Hawks Closet",
     "theme_documentation_url": "https://hawkscloset.com",
     "theme_support_url": "https://hawkscloset.com"
+  },
+  {
+    "name": "Announcement Bar",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "announcement_enabled",
+        "label": "Show announcement bar",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "announcement_text",
+        "label": "Announcement text",
+        "default": "Free shipping on all orders"
+      },
+      {
+        "type": "url",
+        "id": "announcement_link",
+        "label": "Announcement link (optional)"
+      }
+    ]
+  },
+  {
+    "name": "Brand",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "label": "Logo width (px)",
+        "min": 40,
+        "max": 200,
+        "step": 4,
+        "default": 80
+      },
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "Brand name",
+        "default": "Hawks Closet"
+      }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Background",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Body text",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Borders",
+        "default": "#e8e8e8"
+      },
+      {
+        "type": "color",
+        "id": "color_button_bg",
+        "label": "Primary button background",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "color_button_text",
+        "label": "Primary button text",
+        "default": "#ffffff"
+      }
+    ]
+  },
+  {
+    "name": "Drop Settings",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "sold_out_visible",
+        "label": "Show sold-out items in grid",
+        "default": true,
+        "info": "When enabled, sold-out pieces remain visible with a 'Sold' tag — useful for showing the full drop after it sells out."
+      },
+      {
+        "type": "text",
+        "id": "drop_label",
+        "label": "Drop label (shown in grid header)",
+        "default": "Current Drop",
+        "info": "e.g. 'Drop 001', 'Spring 2025', 'Archive'"
+      }
+    ]
+  },
+  {
+    "name": "Social & Contact",
+    "settings": [
+      {
+        "type": "text",
+        "id": "instagram_handle",
+        "label": "Instagram handle",
+        "default": "hawks.vtg",
+        "info": "Without the @ symbol"
+      },
+      {
+        "type": "text",
+        "id": "contact_email",
+        "label": "Contact email",
+        "default": "hawkscloset@gmail.com"
+      }
+    ]
+  },
+  {
+    "name": "Footer",
+    "settings": [
+      {
+        "type": "richtext",
+        "id": "footer_text",
+        "label": "Footer text",
+        "default": "<p>Hawks Closet &mdash; Est. 2024</p>"
+      }
+    ]
+  },
+  {
+    "name": "Password Page",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "password_bg_image",
+        "label": "Background image",
+        "info": "Recommended: 16:9 ratio (1920×1080 px or larger), centered focal point, under 2MB."
+      },
+      {
+        "type": "range",
+        "id": "password_overlay_opacity",
+        "label": "Dark overlay opacity",
+        "min": 0,
+        "max": 90,
+        "step": 5,
+        "default": 55,
+        "info": "Controls how dark the overlay is on top of the background image. Higher = more readable text."
+      },
+      {
+        "type": "header",
+        "content": "SMS Notifications (Klaviyo)"
+      },
+      {
+        "type": "text",
+        "id": "klaviyo_public_key",
+        "label": "Klaviyo Public API Key",
+        "info": "Found in Klaviyo → Settings → API Keys. This is the public key (safe to expose)."
+      },
+      {
+        "type": "text",
+        "id": "klaviyo_sms_list_id",
+        "label": "Klaviyo SMS List ID",
+        "info": "Found in Klaviyo → Audience → Lists → click your list → copy the ID from the URL."
+      }
+    ]
   }
 ]
