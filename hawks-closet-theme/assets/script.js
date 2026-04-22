@@ -243,6 +243,47 @@ function shopifyLoadMore(btn) {
 /* ═══════════════════════════════════════
    PRODUCT DETAIL OVERLAY
 ═══════════════════════════════════════ */
+function renderGallery(host, imgs, alt) {
+  if (!imgs.length) {
+    host.innerHTML = '<div class="ph"><svg width="48" height="48" viewBox="0 0 36 36" fill="none"><rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/><path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/><circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/></svg></div>';
+    return;
+  }
+  var safeAlt = (alt || '').replace(/"/g, '&quot;');
+  var slides = imgs.map(function(src, i) {
+    return '<img class="pd-slide' + (i === 0 ? ' on' : '') + '" src="' + src + '" alt="' + safeAlt + '">';
+  }).join('');
+  var dots = imgs.length > 1
+    ? '<div class="pd-dots">' + imgs.map(function(_, i) {
+        return '<button class="pd-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Slide ' + (i + 1) + '"></button>';
+      }).join('') + '</div>'
+    : '';
+  var arrows = imgs.length > 1
+    ? '<button class="pd-arrow pd-prev" aria-label="Previous">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+      '</button>' +
+      '<button class="pd-arrow pd-next" aria-label="Next">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+      '</button>'
+    : '';
+  host.innerHTML = '<div class="pd-slider"><div class="pd-stage"><div class="pd-slides">' + slides + '</div>' + arrows + '</div>' + dots + '</div>';
+
+  if (imgs.length <= 1) return;
+
+  var idx = 0;
+  var slideEls = host.querySelectorAll('.pd-slide');
+  var dotEls = host.querySelectorAll('.pd-dot');
+  function go(n) {
+    idx = (n + imgs.length) % imgs.length;
+    slideEls.forEach(function(s, i) { s.classList.toggle('on', i === idx); });
+    dotEls.forEach(function(dt, i) { dt.classList.toggle('on', i === idx); });
+  }
+  host.querySelector('.pd-prev').addEventListener('click', function(e) { e.stopPropagation(); go(idx - 1); });
+  host.querySelector('.pd-next').addEventListener('click', function(e) { e.stopPropagation(); go(idx + 1); });
+  dotEls.forEach(function(dt) {
+    dt.addEventListener('click', function(e) { e.stopPropagation(); go(parseInt(this.dataset.i, 10)); });
+  });
+}
+
 function openProduct(el) {
   var d = el.dataset;
   currentProduct = d;
@@ -250,7 +291,7 @@ function openProduct(el) {
 
   get('pdName').textContent = d.name;
   get('pdPrice').textContent = '$' + d.price;
-  get('pdDesc').textContent = d.desc;
+  get('pdDesc').innerHTML = d.desc;
 
   var specs = get('pdSpecs');
   specs.innerHTML = [
@@ -263,9 +304,10 @@ function openProduct(el) {
    }).join('');
 
   var gallery = get('pdGallery');
-  gallery.innerHTML = d.img
-    ? '<img src="' + d.img + '" alt="' + d.name + '" style="max-width:100%;max-height:70vh;object-fit:contain;">'
-    : '<div class="ph" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--white);"><svg width="48" height="48" viewBox="0 0 36 36" fill="none"><rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/><path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/><circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/></svg></div>';
+  var imgs = [];
+  try { imgs = JSON.parse(d.imgs || '[]'); } catch(e) { imgs = []; }
+  if (!imgs.length && d.img) imgs = [d.img];
+  renderGallery(gallery, imgs, d.name);
 
   var addBtn = get('pdAddBtn');
   var buyBtn = get('pdBuyBtn');
@@ -354,6 +396,18 @@ document.addEventListener('keydown', function(e) {
 /* ═══════════════════════════════════════
    INIT
 ═══════════════════════════════════════ */
+function preloadAllGalleryImages() {
+  document.querySelectorAll('.grid-cell').forEach(function(cell) {
+    var raw = cell.dataset.imgs || '[]';
+    try {
+      JSON.parse(raw).forEach(function(src) {
+        if (src) { var i = new Image(); i.src = src; }
+      });
+    } catch(e) {}
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   fetchCart();
+  preloadAllGalleryImages();
 });
