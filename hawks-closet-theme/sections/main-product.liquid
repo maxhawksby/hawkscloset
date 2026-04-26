@@ -1,0 +1,165 @@
+{% comment %}
+  Standalone product page. Same visual language as the homepage's
+  in-grid PDP overlay, but server-rendered for direct URL access
+  (search results, shared links, SEO).
+{% endcomment %}
+
+{% assign condition = product.metafields.custom.condition.value | default: '' %}
+{% assign size      = product.metafields.custom.size.value | default: '' %}
+{% assign era       = product.metafields.custom.era.value | default: '' %}
+{% assign sold      = false %}
+{% unless product.available %}{% assign sold = true %}{% endunless %}
+{% assign price_dollars = product.price | divided_by: 100 %}
+{% assign variant_id = product.variants.first.id %}
+{% assign img_count = product.images.size %}
+
+<div class="pd-page">
+  <div class="pd-page-bar">
+    <a href="/" class="pd-page-back" onclick="if(window.history.length>1){window.history.back();return false;}">
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M5 1L1 5l4 4M1 5h12" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Back
+    </a>
+  </div>
+
+  <div class="pd-layout">
+    <div class="pd-gallery" id="pdPageGallery">
+      {% if img_count > 0 %}
+        <div class="pd-slider">
+          <div class="pd-stage">
+            <div class="pd-slides">
+              {% for image in product.images %}
+                <img class="pd-slide{% if forloop.first %} on{% endif %}"
+                     src="{{ image | image_url: width: 1400 }}"
+                     alt="{{ product.title | escape }}"
+                     {% unless forloop.first %}loading="lazy"{% endunless %}>
+              {% endfor %}
+            </div>
+            {% if img_count > 1 %}
+              <button class="pd-arrow pd-prev" aria-label="Previous"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <button class="pd-arrow pd-next" aria-label="Next"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            {% endif %}
+          </div>
+          {% if img_count > 1 %}
+            <div class="pd-dots">
+              {% for image in product.images %}
+                <button class="pd-dot{% if forloop.first %} on{% endif %}" data-i="{{ forloop.index0 }}" aria-label="Slide {{ forloop.index }}"></button>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="ph" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+          <svg width="48" height="48" viewBox="0 0 36 36" fill="none"><rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/><path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/><circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/></svg>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="pd-info">
+      <p class="pd-eyebrow">Hawks Closet</p>
+      <h1 class="pd-name">{{ product.title | escape }}</h1>
+      <p class="pd-price">${{ price_dollars }}</p>
+      <div class="pd-divider"></div>
+      <div class="pd-specs">
+        {% if condition != '' %}<div class="pd-spec"><span class="pd-spec-label">Condition</span><span class="pd-spec-val">{{ condition | escape }}</span></div>{% endif %}
+        {% if size != '' %}<div class="pd-spec"><span class="pd-spec-label">Size</span><span class="pd-spec-val">{{ size | escape }}</span></div>{% endif %}
+        {% if era != '' %}<div class="pd-spec"><span class="pd-spec-label">Era</span><span class="pd-spec-val">{{ era | escape }}</span></div>{% endif %}
+      </div>
+      <div class="pd-desc">{{ product.description }}</div>
+      <div class="pd-cta">
+        {% if sold %}
+          <button class="pd-add disabled" disabled>Sold Out</button>
+        {% else %}
+          <button class="pd-add primary" id="pdPageAddBtn"
+                  data-variant-id="{{ variant_id }}"
+                  data-name="{{ product.title | escape }}"
+                  onclick="pdPageAdd(this)">Add to Cart</button>
+          <button class="pd-add secondary" id="pdPageBuyBtn"
+                  data-variant-id="{{ variant_id }}"
+                  onclick="pdPageBuy(this)">Buy Now</button>
+        {% endif %}
+        <p class="pd-note">One of one &mdash; first come, first served</p>
+        <p class="pd-ig">Questions? <a href="https://instagram.com/hawks.vtg" target="_blank">DM @hawks.vtg &rarr;</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* Gallery slider for the standalone product page */
+  (function() {
+    var host = document.getElementById('pdPageGallery');
+    if (!host) return;
+    var slides = host.querySelectorAll('.pd-slide');
+    var dots   = host.querySelectorAll('.pd-dot');
+    var prev   = host.querySelector('.pd-prev');
+    var next   = host.querySelector('.pd-next');
+    if (slides.length <= 1) return;
+    var idx = 0;
+    function go(n) {
+      idx = (n + slides.length) % slides.length;
+      slides.forEach(function(s, i) { s.classList.toggle('on', i === idx); });
+      dots.forEach(function(d, i) { d.classList.toggle('on', i === idx); });
+    }
+    if (prev) prev.addEventListener('click', function(e) { e.stopPropagation(); go(idx - 1); });
+    if (next) next.addEventListener('click', function(e) { e.stopPropagation(); go(idx + 1); });
+    dots.forEach(function(d) {
+      d.addEventListener('click', function(e) { e.stopPropagation(); go(parseInt(this.dataset.i, 10)); });
+    });
+  })();
+
+  /* Reuse global addToCart() / showToast() / openCart() defined in script.js */
+  function pdPageAdd(btn) {
+    if (btn.classList.contains('loading') || btn.classList.contains('disabled')) return;
+    var variantId = parseInt(btn.dataset.variantId);
+    var name = btn.dataset.name;
+    btn.classList.add('loading');
+    btn.textContent = 'Adding…';
+    addToCart(variantId, name, function(success) {
+      btn.classList.remove('loading');
+      if (success) {
+        btn.textContent = 'Add to Cart';
+        setTimeout(openCart, 350);
+      } else {
+        btn.textContent = 'Sold Out';
+        btn.className = 'pd-add disabled';
+        btn.disabled = true;
+        var buy = document.getElementById('pdPageBuyBtn');
+        if (buy) buy.style.display = 'none';
+      }
+    });
+  }
+
+  function pdPageBuy(btn) {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    var variantId = parseInt(btn.dataset.variantId);
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: variantId, quantity: 1 })
+    })
+    .then(function(r) {
+      if (r.status === 422) {
+        return r.json().then(function(err) {
+          showToast(err.description || 'Item no longer available');
+          btn.disabled = false;
+          var add = document.getElementById('pdPageAddBtn');
+          if (add) { add.textContent = 'Sold Out'; add.className = 'pd-add disabled'; add.disabled = true; }
+          btn.style.display = 'none';
+        });
+      }
+      window.location.href = '/checkout';
+    })
+    .catch(function() {
+      showToast('Could not proceed — try again');
+      btn.disabled = false;
+    });
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Product",
+  "settings": []
+}
+{% endschema %}

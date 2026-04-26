@@ -201,7 +201,9 @@ img { display: block; }
 }
 @media (max-width: 600px) {
   .search-panel { padding: 20px 14px 60px; }
-  .search-input-wrap input { height: 44px; font-size: 12px; }
+  /* font-size: 16px is required to prevent iOS Safari from zooming
+     in on focus. Anything smaller triggers the auto-zoom. */
+  .search-input-wrap input { height: 46px; font-size: 16px; letter-spacing: .08em; padding: 0 12px; }
 }
 .grid-cell {
   background: var(--white); cursor: pointer;
@@ -381,6 +383,22 @@ img { display: block; }
 .overlay-bar-right { width: 80px; display: flex; justify-content: flex-end; }
 
 /* ── PRODUCT DETAIL ── */
+/* Standalone product page wrapper (templates/product.json) */
+.pd-page { margin-top: var(--nav-h); }
+.pd-page-bar {
+  height: 44px; display: flex; align-items: center;
+  padding: 0 24px; border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+.pd-page-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--gray); padding: 8px 0;
+}
+.pd-page-back:hover { color: var(--black); }
+.pd-page .pd-layout { min-height: auto; }
+.pd-page .pd-gallery { min-height: calc(100vh - var(--nav-h) - 44px); height: calc(100vh - var(--nav-h) - 44px); top: calc(var(--nav-h) + 44px); }
+
 .pd-layout { display: grid; grid-template-columns: 1fr 480px; min-height: calc(100vh - var(--nav-h)); }
 .pd-gallery {
   background: var(--white); display: flex; align-items: center; justify-content: center;
@@ -642,6 +660,10 @@ button, a, [role="button"], select {
   /* Overlay bar */
   .overlay-bar { padding: 0 14px; }
   .overlay-bar-title { font-size: 9px; }
+
+  /* Product page bar */
+  .pd-page-bar { padding: 0 14px; }
+  .pd-page .pd-gallery { min-height: 80vw; height: auto; max-height: 86vw; position: static; top: auto; }
 
   /* Product detail */
   .pd-gallery {
