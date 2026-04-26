@@ -1,10 +1,10 @@
 {% comment %}
   Minimal response for AJAX "Load More" requests on collection pages.
-  Called via: /collections/all?page=N&sort_by=...&view=grid
+  Called via: /collections/<handle>?page=N&sort_by=...&view=grid
   Returns only product cards + optional next-page URL.
   No layout wrapper — appended directly into #productGrid via JS.
 {% endcomment %}
-{% paginate collection.products by 12 %}
+{% paginate collection.products by 40 %}
   {% for product in collection.products %}
     {% render 'product-card', product: product %}
   {% endfor %}

@@ -25,28 +25,36 @@ img { display: block; }
 .nav {
   position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-h);
   background: var(--white); border-bottom: 1px solid var(--border);
-  display: grid; grid-template-columns: 1fr auto 1fr;
-  align-items: center; padding: 0 20px; z-index: 200;
+  display: grid; grid-template-columns: auto auto 1fr auto;
+  align-items: center; gap: 16px; padding: 0 20px; z-index: 200;
 }
-/* Hamburger — left slot, explicit stacking context */
+/* Hamburger — leftmost slot */
 .nav-ham {
   display: flex; flex-direction: column; gap: 5px;
   width: 40px; height: 40px; justify-content: center; align-items: flex-start;
   cursor: pointer; background: none; border: none; padding: 0;
-  position: relative; z-index: 201; /* above brand */
+  position: relative; z-index: 201;
 }
 .nav-ham span {
   display: block; width: 18px; height: 1.5px;
   background: var(--black); transition: all .25s;
 }
-/* Brand — center slot */
-.nav-brand { display: flex; align-items: center; gap: 8px; justify-content: center; }
+/* Brand — logo only, sits next to hamburger */
+.nav-brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .nav-logo { width: 32px; height: 32px; object-fit: contain; object-position: center top; image-rendering: pixelated; }
-.nav-brand-name { font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
-/* Nav right — right slot */
+/* Search — fills the middle, capped width on desktop, centered in its track */
+.nav-search { display: flex; align-items: center; justify-self: center; width: 100%; max-width: 520px; }
+.nav-search input {
+  width: 100%; height: 36px; padding: 0 14px;
+  font-family: var(--f); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  background: var(--white); color: var(--black);
+  border: 1px solid var(--black); border-radius: 0;
+  outline: none; transition: background .15s;
+}
+.nav-search input::placeholder { color: var(--black); opacity: .45; letter-spacing: .14em; text-transform: uppercase; }
+.nav-search input:focus { background: #fafafa; }
+/* Nav right — cart slot */
 .nav-right { display: flex; align-items: center; gap: 18px; justify-content: flex-end; }
-.nav-right a { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; opacity: .65; transition: opacity .15s; }
-.nav-right a:hover { opacity: 1; }
 .nav-cart { position: relative; cursor: pointer; display: flex; align-items: center; }
 .nav-cart-badge {
   position: absolute; top: -7px; right: -9px;
@@ -91,6 +99,13 @@ img { display: block; }
   border-bottom: 1px solid var(--border); transition: background .12s;
 }
 .drawer-nav a:hover { background: var(--light); }
+.drawer-nav a.drawer-sub {
+  padding-left: 36px;
+  font-size: 11px;
+  opacity: .6;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-nav a.drawer-sub:hover { opacity: 1; }
 .drawer-sep { height: 24px; }
 .drawer-foot {
   border-top: 1px solid var(--border); padding: 20px;
@@ -139,6 +154,54 @@ img { display: block; }
   display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 48px 2px; background: var(--white);
   padding: 24px 0 100px;
+}
+.grid-empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: 80px 20px;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gray);
+}
+
+/* ═══════════════════════════════════════
+   SEARCH OVERLAY
+   Reuses .overlay / .overlay-bar / .grid
+═══════════════════════════════════════ */
+.search-panel {
+  max-width: 1200px; margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+.search-input-wrap { padding: 0 0 20px; }
+.search-input-wrap input {
+  width: 100%; height: 48px; padding: 0 16px;
+  font-family: var(--f); font-size: 13px;
+  letter-spacing: .14em; text-transform: uppercase;
+  background: var(--white); color: var(--black);
+  border: 1px solid var(--black); border-radius: 0;
+  outline: none;
+}
+.search-input-wrap input::placeholder { color: var(--black); opacity: .35; }
+.search-suggestions {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 4px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.search-suggestions:empty { display: none; border: none; margin: 0; padding: 0; }
+.search-suggestion {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--black); cursor: pointer;
+  padding: 6px 0;
+  background: none; border: none; text-align: left;
+}
+.search-suggestion:hover { opacity: .55; }
+/* Search results render as anchor tags — strip default link styles */
+#searchResultsGrid a.grid-cell {
+  text-decoration: none;
+  color: inherit;
+}
+@media (max-width: 600px) {
+  .search-panel { padding: 20px 14px 60px; }
+  .search-input-wrap input { height: 44px; font-size: 12px; }
 }
 .grid-cell {
   background: var(--white); cursor: pointer;
@@ -362,7 +425,7 @@ img { display: block; }
 }
 .pd-spec-label { color: var(--gray); text-transform: uppercase; letter-spacing: .14em; width: 120px; flex-shrink: 0; }
 .pd-spec-val { color: var(--black); }
-.pd-desc { font-size: 11px; font-weight: 300; letter-spacing: .04em; line-height: 1.9; color: #444; max-width: 360px; }
+.pd-desc { font-size: 11px; font-weight: 500; letter-spacing: .04em; line-height: 1.85; color: #111; max-width: 360px; }
 .pd-desc p { margin: 0 0 1em; }
 .pd-desc p:last-child { margin-bottom: 0; }
 .pd-desc strong, .pd-desc b { font-weight: 600; color: #000; }
@@ -549,10 +612,11 @@ button, a, [role="button"], select {
 
   /* Nav */
   :root { --nav-h: 54px; }
-  .nav { padding: 0 14px; }
-  .nav-brand-name { font-size: 10px; letter-spacing: .14em; }
+  .nav { padding: 0 12px; gap: 8px; }
+  .nav-logo { width: 28px; height: 28px; }
+  .nav-search { max-width: none; }
+  .nav-search input { height: 32px; font-size: 10px; padding: 0 10px; letter-spacing: .1em; }
   .nav-right { gap: 14px; }
-  .nav-right a { display: none; } /* hide Shop link — drawer has it */
 
   /* Drawer — nearly full width */
   .drawer { width: min(300px, 85vw); }
@@ -585,6 +649,14 @@ button, a, [role="button"], select {
     padding: 20px;
   }
   .pd-info { padding: 24px 16px; gap: 20px; }
+  /* Mobile-only: buttons above description so Add to Cart is visible without scrolling */
+  .pd-info .pd-eyebrow { order: 1; }
+  .pd-info .pd-name    { order: 2; }
+  .pd-info .pd-price   { order: 3; }
+  .pd-info .pd-divider { order: 4; }
+  .pd-info .pd-specs   { order: 5; }
+  .pd-info .pd-cta     { order: 6; }
+  .pd-info .pd-desc    { order: 7; }
   .pd-name { font-size: 20px; letter-spacing: .03em; }
   .pd-price { font-size: 18px; }
   .pd-desc { font-size: 11px; }

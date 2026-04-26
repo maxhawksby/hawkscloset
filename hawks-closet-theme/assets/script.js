@@ -183,15 +183,143 @@ function goCheckout() {
 }
 
 /* ═══════════════════════════════════════
-   SORT — re-orders DOM nodes
-   (products are server-rendered by Liquid)
-   Note: sorts only loaded cards. Full
-   sort requires a page reload with
-   Shopify sort_by param — wired below.
+   SORT — page reload with Shopify sort_by.
+   Stays on the current collection if we're
+   on /collections/X; otherwise (homepage)
+   redirects to /collections/drop-01.
 ═══════════════════════════════════════ */
 function doSort() {
   var v = get('sortSel').value;
-  window.location.href = v ? '/collections/all?sort_by=' + v : '/collections/all';
+  var path = window.location.pathname;
+  var base = path.indexOf('/collections/') === 0 ? path : '/collections/drop-01';
+  window.location.href = v ? base + '?sort_by=' + v : base;
+}
+
+/* ═══════════════════════════════════════
+   SEARCH OVERLAY (Shopify Predictive Search API)
+   Nav input opens the overlay; real input is
+   inside #overlaySearch. On each keystroke we
+   debounce 150ms then hit /search/suggest.json.
+   In-flight requests are aborted when a newer
+   keystroke supersedes them. Click on a result
+   navigates to the product page (full data via
+   Shopify's product template).
+═══════════════════════════════════════ */
+var _searchDebounce = null;
+var _searchAbort = null;
+var SEARCH_DEBOUNCE_MS = 150;
+var SEARCH_LIMIT = 10;
+
+function openSearch() {
+  var ov = get('searchOverlayInput');
+  if (ov) { ov.value = ''; }
+  doSearch(); /* clears suggestions + results */
+  openOverlay('overlaySearch');
+  /* small delay so slide-in animation doesn't fight focus */
+  setTimeout(function() {
+    if (ov) ov.focus();
+    var nav = get('searchInput');
+    if (nav) nav.blur();
+  }, 80);
+}
+
+function doSearch() {
+  var ov = get('searchOverlayInput');
+  var q = ((ov && ov.value) || '').trim();
+  var resultsGrid = get('searchResultsGrid');
+  var sugWrap = get('searchSuggestions');
+  if (!resultsGrid || !sugWrap) return;
+
+  /* Cancel any pending debounced call + in-flight request */
+  if (_searchDebounce) { clearTimeout(_searchDebounce); _searchDebounce = null; }
+  if (_searchAbort) { _searchAbort.abort(); _searchAbort = null; }
+
+  /* Empty input → clear and exit */
+  if (!q) {
+    resultsGrid.innerHTML = '';
+    sugWrap.innerHTML = '';
+    return;
+  }
+
+  /* Debounce: wait 150ms after last keystroke before firing */
+  _searchDebounce = setTimeout(function() {
+    fetchSearch(q);
+  }, SEARCH_DEBOUNCE_MS);
+}
+
+function fetchSearch(q) {
+  var resultsGrid = get('searchResultsGrid');
+  var sugWrap = get('searchSuggestions');
+  var url = '/search/suggest.json'
+    + '?q=' + encodeURIComponent(q)
+    + '&resources[type]=product'
+    + '&resources[limit]=' + SEARCH_LIMIT
+    + '&resources[options][unavailable_products]=show';
+
+  _searchAbort = new AbortController();
+  fetch(url, { signal: _searchAbort.signal })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var products = (data.resources && data.resources.results && data.resources.results.products) || [];
+      renderSearchResults(products);
+    })
+    .catch(function(err) {
+      if (err.name === 'AbortError') return; /* superseded by newer keystroke */
+      resultsGrid.innerHTML = '<p class="grid-empty">Search unavailable. Try again.</p>';
+      sugWrap.innerHTML = '';
+    });
+}
+
+function renderSearchResults(products) {
+  var resultsGrid = get('searchResultsGrid');
+  var sugWrap = get('searchSuggestions');
+  resultsGrid.innerHTML = '';
+  sugWrap.innerHTML = '';
+
+  if (products.length === 0) {
+    resultsGrid.innerHTML = '<p class="grid-empty">No pieces match that search.</p>';
+    return;
+  }
+
+  /* Suggestions: top 3 matched product titles */
+  products.slice(0, 3).forEach(function(p) {
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'search-suggestion';
+    s.textContent = p.title;
+    s.onclick = function() { window.location.href = p.url; };
+    sugWrap.appendChild(s);
+  });
+
+  products.forEach(function(p) {
+    resultsGrid.appendChild(buildResultCell(p));
+  });
+}
+
+/* Builds a .grid-cell <a> from a Shopify Predictive Search product object */
+function buildResultCell(p) {
+  var cell = document.createElement('a');
+  cell.href = p.url;
+  cell.className = 'grid-cell' + (p.available ? '' : ' sold');
+  var thumb = p.image || (p.featured_image && p.featured_image.url) || '';
+  var safeName = (p.title || '').replace(/"/g, '&quot;');
+  /* Predictive search returns price as a formatted string like "$400.00".
+     Strip non-numeric to a clean integer dollar amount. Fallback for cents. */
+  var priceStr = (typeof p.price === 'string')
+    ? p.price.replace(/[^\d.]/g, '').split('.')[0]
+    : Math.round((p.price || 0) / 100);
+  cell.innerHTML =
+    '<div class="grid-img">' +
+      (thumb
+        ? '<img src="' + thumb + '" alt="' + safeName + '" loading="lazy">'
+        : '<div class="grid-ph"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/><path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/><circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/></svg></div>') +
+      '<div class="sold-tag"><span>Sold</span></div>' +
+    '</div>' +
+    '<div class="grid-info">' +
+      '<p class="grid-name">' + (p.title || '') + '</p>' +
+      '<p class="grid-price">$' + priceStr + '</p>' +
+    '</div>';
+  return cell;
 }
 
 /* ═══════════════════════════════════════
@@ -233,6 +361,7 @@ function shopifyLoadMore(btn) {
         // No more pages — hide the button
         if (wrap) wrap.style.display = 'none';
       }
+
     })
     .catch(function() {
       btn.textContent = 'Load More';

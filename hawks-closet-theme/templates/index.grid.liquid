@@ -1,11 +1,11 @@
 {% comment %}
-  Minimal response for AJAX "Load More" requests.
-  Called via: /collections/all?page=N&view=grid
+  Minimal response for AJAX "Load More" requests on the homepage.
+  Called via: /?page=N&view=grid (Shopify routes view=grid to this template)
   Returns only product cards + optional next-page button data.
   No layout wrapper — appended directly into #productGrid via JS.
 {% endcomment %}
-{% paginate collections.all.products by 12 %}
-  {% for product in collections.all.products %}
+{% paginate collections['drop-01'].products by 40 %}
+  {% for product in collections['drop-01'].products %}
     {% render 'product-card', product: product %}
   {% endfor %}
   {% if paginate.next %}

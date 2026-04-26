@@ -1,12 +1,12 @@
 <!-- ══════ SHOP ══════ -->
 <div id="shopSection">
 
-  {% assign col = collection | default: collections.all %}
+  {% assign col = collection | default: collections['drop-01'] %}
   {% assign current_sort = collection.sort_by | default: '' %}
 
   <div class="toolbar">
     <span class="toolbar-label">
-      All
+      {{ col.title }}
       <span style="font-weight:300;opacity:.45;">({{ col.products_count }})</span>
     </span>
     <div class="toolbar-sort">
@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  {% paginate col.products by 12 %}
+  {% paginate col.products by 40 %}
 
     <div class="grid" id="productGrid">
       {% if col.products_count > 0 %}
