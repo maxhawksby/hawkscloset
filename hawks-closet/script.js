@@ -159,25 +159,50 @@ function goCheckout() {
 }
 
 /* ═══════════════════════════════════════
-   SORT — re-renders from PRODUCTS array
+   SEARCH + SORT — compose into a single view
+   doSearch and doSort both call applyView,
+   which filters by query then sorts then renders.
 ═══════════════════════════════════════ */
-function doSort() {
-  var v = get('sortSel').value;
-  var sorted = PRODUCTS.slice();
-  if (v === 'lh') sorted.sort(function(a, b) { return a.price - b.price; });
-  if (v === 'hl') sorted.sort(function(a, b) { return b.price - a.price; });
-  if (v === 'az') sorted.sort(function(a, b) { return a.name.localeCompare(b.name); });
-  if (v === 'za') sorted.sort(function(a, b) { return b.name.localeCompare(a.name); });
-  renderProducts(sorted);
-  updateProductCount();
+var _searchQuery = '';
+
+function doSearch() {
+  var input = get('searchInput');
+  _searchQuery = ((input && input.value) || '').trim().toLowerCase();
+  applyView();
+}
+
+function doSort() { applyView(); }
+
+function applyView() {
+  var list = PRODUCTS.slice();
+
+  if (_searchQuery) {
+    var tokens = _searchQuery.split(/\s+/);
+    list = list.filter(function(p) {
+      var hay = (p.name + ' ' + p.desc).toLowerCase();
+      return tokens.every(function(t) { return hay.indexOf(t) !== -1; });
+    });
+  }
+
+  var sortEl = get('sortSel');
+  var v = sortEl ? sortEl.value : '';
+  if (v === 'lh') list.sort(function(a, b) { return a.price - b.price; });
+  if (v === 'hl') list.sort(function(a, b) { return b.price - a.price; });
+  if (v === 'az') list.sort(function(a, b) { return a.name.localeCompare(b.name); });
+  if (v === 'za') list.sort(function(a, b) { return b.name.localeCompare(a.name); });
+
+  renderProducts(list);
+  updateProductCount(list.length);
 }
 
 /* ═══════════════════════════════════════
-   PRODUCT COUNT
+   PRODUCT COUNT — shows (n of total) when filtered
 ═══════════════════════════════════════ */
-function updateProductCount() {
-  var el = get('productCount');
-  if (el) el.textContent = '(' + PRODUCTS.length + ')';
+function updateProductCount(visible) {
+  var el = get('productCount'); if (!el) return;
+  var total = PRODUCTS.length;
+  var n = (typeof visible === 'number') ? visible : total;
+  el.textContent = (n === total) ? '(' + total + ')' : '(' + n + ' of ' + total + ')';
 }
 
 /* ═══════════════════════════════════════

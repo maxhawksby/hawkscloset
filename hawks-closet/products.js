@@ -198,12 +198,17 @@ function _syncLoadMore() {
   }
 }
 
-/* Full reset — called on initial render and after sort */
+/* Full reset — called on initial render and after sort/search */
 function renderProducts(list) {
   _activeList  = list || PRODUCTS;
   _loadedCount = 0;
   var grid = document.getElementById('productGrid');
   grid.innerHTML = '';
+  if (_activeList.length === 0) {
+    grid.innerHTML = '<p class="grid-empty">No pieces match that search.</p>';
+    _syncLoadMore();
+    return;
+  }
   loadMore();
 }
 

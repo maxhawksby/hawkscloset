@@ -36,12 +36,13 @@
     <span></span>
     <span></span>
   </button>
-  <a class="nav-brand" href="#" onclick="scrollToShop();return false;">
+  <a class="nav-brand" href="#" onclick="scrollToShop();return false;" aria-label="Hawks Closet home">
     <img class="nav-logo" src="images/logo.png" alt="Hawks Closet">
-    <span class="nav-brand-name">Hawks Closet</span>
   </a>
+  <div class="nav-search">
+    <input type="text" id="searchInput" placeholder="Search pieces" oninput="doSearch()" autocomplete="off" aria-label="Search pieces">
+  </div>
   <div class="nav-right">
-    <a href="#" onclick="scrollToShop();return false;">Shop</a>
     <div class="nav-cart" onclick="openCart()" role="button" aria-label="Cart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
