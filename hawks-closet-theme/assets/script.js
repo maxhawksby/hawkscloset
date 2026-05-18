@@ -348,6 +348,9 @@ function shopifyLoadMore(btn) {
         grid.appendChild(document.importNode(card, true));
       });
 
+      // Newly-appended cells must respect any active size filter
+      applyFilter();
+
       // Check if there's another page
       var nextUrlEl = doc.getElementById('nextPageUrl');
       var wrap = get('loadMoreWrap');
@@ -367,6 +370,126 @@ function shopifyLoadMore(btn) {
       btn.textContent = 'Load More';
       btn.disabled = false;
     });
+}
+
+/* ═══════════════════════════════════════
+   SIZE FILTER
+   Toggleable drawer (same pattern as menu).
+   Pills are multi-select; state syncs to URL
+   (?size=L,XL) via pushState so views are
+   shareable. Filter hides .grid-cell whose
+   data-size is not in the active set. The
+   filter is reapplied after Load More appends.
+═══════════════════════════════════════ */
+function openFilter() {
+  var d = get('filterDrawer');
+  var b = get('filterBackdrop');
+  if (!d || !b) return;
+  d.classList.add('on');
+  d.setAttribute('aria-hidden', 'false');
+  b.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeFilter() {
+  var d = get('filterDrawer');
+  var b = get('filterBackdrop');
+  if (!d || !b) return;
+  d.classList.remove('on');
+  d.setAttribute('aria-hidden', 'true');
+  b.classList.remove('on');
+  if (!document.querySelector('.overlay.on') && !get('cartPanel').classList.contains('on')) {
+    document.body.style.overflow = '';
+  }
+}
+
+/* Read active pills, return uppercased Set of sizes (or null = no filter). */
+function getActiveSizeFilter() {
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill[aria-pressed="true"]');
+  if (!pills.length) return null;
+  var set = {};
+  pills.forEach(function(p) { set[(p.dataset.size || '').toUpperCase()] = true; });
+  return set;
+}
+
+/* Hide/show grid cells based on active filter. Updates counts and clear-all visibility. */
+function applyFilter() {
+  var active = getActiveSizeFilter();
+  var cells = document.querySelectorAll('#productGrid .grid-cell');
+  var visible = 0;
+  cells.forEach(function(cell) {
+    if (!active) {
+      cell.classList.remove('filter-hidden');
+      visible++;
+      return;
+    }
+    var sz = (cell.dataset.size || '').toUpperCase();
+    if (sz && active[sz]) {
+      cell.classList.remove('filter-hidden');
+      visible++;
+    } else {
+      cell.classList.add('filter-hidden');
+    }
+  });
+  /* Toolbar Filter button count chip — shows total active sizes when filter is on */
+  var chip = get('filterCount');
+  if (chip) {
+    var n = active ? Object.keys(active).length : 0;
+    chip.textContent = n > 0 ? n : '';
+    chip.classList.toggle('on', n > 0);
+  }
+  /* In-drawer "View N" count */
+  var ac = get('filterApplyCount');
+  if (ac) ac.textContent = visible;
+}
+
+/* Write current pill state to ?size=A,B URL param via pushState (no reload). */
+function syncFilterToUrl() {
+  var active = getActiveSizeFilter();
+  var url = new URL(window.location.href);
+  if (active) {
+    url.searchParams.set('size', Object.keys(active).join(','));
+  } else {
+    url.searchParams.delete('size');
+  }
+  window.history.replaceState({}, '', url.toString());
+}
+
+/* Read ?size from URL and pre-select matching pills. Safe to call on any page. */
+function syncFilterFromUrl() {
+  var params = new URLSearchParams(window.location.search);
+  var raw = params.get('size') || '';
+  var wanted = {};
+  raw.split(',').forEach(function(s) {
+    var v = s.trim().toUpperCase();
+    if (v) wanted[v] = true;
+  });
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
+  pills.forEach(function(p) {
+    var v = (p.dataset.size || '').toUpperCase();
+    p.setAttribute('aria-pressed', wanted[v] ? 'true' : 'false');
+  });
+}
+
+function clearFilter() {
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
+  pills.forEach(function(p) { p.setAttribute('aria-pressed', 'false'); });
+  syncFilterToUrl();
+  applyFilter();
+}
+
+function initFilter() {
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
+  if (!pills.length) return;
+  pills.forEach(function(p) {
+    p.addEventListener('click', function() {
+      var pressed = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+      syncFilterToUrl();
+      applyFilter();
+    });
+  });
+  syncFilterFromUrl();
+  applyFilter();
 }
 
 /* ═══════════════════════════════════════
@@ -519,6 +642,8 @@ document.addEventListener('keydown', function(e) {
   var open = document.querySelector('.overlay.on');
   if (open) { open.classList.remove('on'); document.body.style.overflow = ''; return; }
   if (get('cartPanel').classList.contains('on')) { closeCart(); return; }
+  var fd = get('filterDrawer');
+  if (fd && fd.classList.contains('on')) { closeFilter(); return; }
   if (get('drawer').classList.contains('on')) { closeDrawer(); }
 });
 
@@ -539,4 +664,5 @@ function preloadAllGalleryImages() {
 document.addEventListener('DOMContentLoaded', function() {
   fetchCart();
   preloadAllGalleryImages();
+  initFilter();
 });

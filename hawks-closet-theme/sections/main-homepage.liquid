@@ -1,7 +1,8 @@
 <!-- ══════ SHOP ══════ -->
 <div id="shopSection">
 
-  {% assign col = collection | default: collections['drop-01'] %}
+  {%- assign default_handle = settings.current_drop_handle | default: 'drop-01' -%}
+  {% assign col = collection | default: collections[default_handle] %}
   {% assign current_sort = collection.sort_by | default: '' %}
 
   <div class="toolbar">
@@ -9,19 +10,28 @@
       {{ col.title }}
       <span style="font-weight:300;opacity:.45;">({{ col.products_count }})</span>
     </span>
-    <div class="toolbar-sort">
-      <span>Sort</span>
-      <select class="sort-sel" id="sortSel" onchange="doSort()">
-        <option value="" {% if current_sort == '' %}selected{% endif %}>&#8212;</option>
-        <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>Featured</option>
-        <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>Best Selling</option>
-        <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Low to High</option>
-        <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>High to Low</option>
-        <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A &#x2013; Z</option>
-        <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z &#x2013; A</option>
-        <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Date, Old to New</option>
-        <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Date, New to Old</option>
-      </select>
+    <div class="toolbar-actions">
+      <button type="button" class="toolbar-filter" onclick="openFilter()" aria-label="Filter">
+        <svg width="12" height="10" viewBox="0 0 14 12" fill="none" aria-hidden="true">
+          <path d="M1 1h12M3 6h8M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span>Filter</span>
+        <span class="toolbar-filter-count" id="filterCount" aria-hidden="true"></span>
+      </button>
+      <div class="toolbar-sort">
+        <span>Sort</span>
+        <select class="sort-sel" id="sortSel" onchange="doSort()">
+          <option value="" {% if current_sort == '' %}selected{% endif %}>&#8212;</option>
+          <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>Featured</option>
+          <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>Best Selling</option>
+          <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Low to High</option>
+          <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>High to Low</option>
+          <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A &#x2013; Z</option>
+          <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>Z &#x2013; A</option>
+          <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>Date, Old to New</option>
+          <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>Date, New to Old</option>
+        </select>
+      </div>
     </div>
   </div>
 

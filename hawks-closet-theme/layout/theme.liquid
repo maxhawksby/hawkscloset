@@ -4,6 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page_title }} — Hawks Closet</title>
+
+  {%- liquid
+    if template contains 'product'
+      assign og_title = product.title
+      assign og_desc  = product.description | strip_html | strip_newlines | truncate: 160
+      assign og_image = product.featured_image | image_url: width: 1200 | prepend: 'https:'
+      assign og_type  = 'product'
+    elsif template contains 'collection'
+      assign og_title = collection.title
+      assign og_desc  = collection.description | strip_html | strip_newlines | truncate: 160 | default: shop.description
+      assign og_image = collection.image | image_url: width: 1200 | prepend: 'https:'
+      assign og_type  = 'website'
+    else
+      assign og_title = page_title
+      assign og_desc  = page_description | default: shop.description | default: 'Curated vintage from Hawks Closet — drop-based, one-of-one pieces sourced by hand.'
+      assign og_image = 'logo.png' | asset_url | prepend: 'https:'
+      assign og_type  = 'website'
+    endif
+  -%}
+  <meta name="description" content="{{ og_desc | escape }}">
+  <meta property="og:type" content="{{ og_type }}">
+  <meta property="og:title" content="{{ og_title | escape }}">
+  <meta property="og:description" content="{{ og_desc | escape }}">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:site_name" content="Hawks Closet">
+  <meta name="twitter:card" content="summary_large_image">
+
   {{ content_for_header }}
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   {{ 'style.css' | asset_url | stylesheet_tag }}
@@ -12,6 +39,10 @@
 
 <!-- ══════ DRAWER BACKDROP ══════ -->
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+
+<!-- ══════ FILTER DRAWER ══════ -->
+<div class="drawer-backdrop" id="filterBackdrop" onclick="closeFilter()"></div>
+{% render 'filter-drawer' %}
 
 <!-- ══════ DRAWER MENU ══════ -->
 <div class="drawer" id="drawer">
@@ -22,7 +53,9 @@
     </button>
   </div>
   <nav class="drawer-nav">
-    <a href="/" onclick="closeDrawer()">Drop 01</a>
+    <a href="/collections/drop-02" onclick="closeDrawer()">Drop 02</a>
+    <a href="/collections/drop-02-available" onclick="closeDrawer()" class="drawer-sub">— Available</a>
+    <a href="/collections/drop-01" onclick="closeDrawer()">Drop 01</a>
     <a href="/collections/drop-01-available" onclick="closeDrawer()" class="drawer-sub">— Available</a>
     <a href="/collections/archive" onclick="closeDrawer()">Archive</a>
     <div class="drawer-sep"></div>

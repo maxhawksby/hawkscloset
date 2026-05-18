@@ -93,6 +93,20 @@
     "name": "Drop Settings",
     "settings": [
       {
+        "type": "text",
+        "id": "current_drop_handle",
+        "label": "Current drop collection handle",
+        "default": "drop-01",
+        "info": "The collection handle (e.g. 'drop-01', 'drop-02') shown on the homepage by default. Update this when a new drop launches."
+      },
+      {
+        "type": "text",
+        "id": "size_filter_options",
+        "label": "Size filter options",
+        "default": "XS,S,M,L,XL,XXL,OS",
+        "info": "Comma-separated size labels for the storefront filter (e.g. 'S,M,L,XL,OS'). Order shown matches the order here."
+      },
+      {
         "type": "checkbox",
         "id": "sold_out_visible",
         "label": "Show sold-out items in grid",
