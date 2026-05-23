@@ -4,8 +4,9 @@
   Returns only product cards + optional next-page button data.
   No layout wrapper — appended directly into #productGrid via JS.
 {% endcomment %}
-{% paginate collections['drop-01'].products by 40 %}
-  {% for product in collections['drop-01'].products %}
+{%- assign drop_handle = settings.current_drop_handle | default: 'drop-02-available' -%}
+{% paginate collections[drop_handle].products by 40 %}
+  {% for product in collections[drop_handle].products %}
     {% render 'product-card', product: product %}
   {% endfor %}
   {% if paginate.next %}

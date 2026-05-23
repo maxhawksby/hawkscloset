@@ -117,6 +117,10 @@ img { display: block; }
 ═══════════════════════════════════════ */
 .toolbar {
   margin-top: var(--nav-h);
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 50;
+  background: var(--white);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 18px; height: 48px;
 }
