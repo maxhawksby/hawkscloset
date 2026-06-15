@@ -411,29 +411,39 @@ function getActiveSizeFilter() {
   return set;
 }
 
-/* Hide/show grid cells based on active filter. Updates counts and clear-all visibility. */
+/* Read in-stock toggle state — true = hide sold cells. */
+function getActiveInStockFilter() {
+  var t = get('filterInStockToggle');
+  return !!(t && t.checked);
+}
+
+/* Hide/show grid cells based on active filters. Updates counts and clear-all visibility. */
 function applyFilter() {
-  var active = getActiveSizeFilter();
+  var activeSize = getActiveSizeFilter();
+  var inStock = getActiveInStockFilter();
   var cells = document.querySelectorAll('#productGrid .grid-cell');
   var visible = 0;
   cells.forEach(function(cell) {
-    if (!active) {
-      cell.classList.remove('filter-hidden');
-      visible++;
-      return;
+    var sizeOk = true;
+    if (activeSize) {
+      var sz = (cell.dataset.size || '').toUpperCase();
+      sizeOk = sz && activeSize[sz];
     }
-    var sz = (cell.dataset.size || '').toUpperCase();
-    if (sz && active[sz]) {
+    var stockOk = true;
+    if (inStock) {
+      stockOk = cell.dataset.sold !== 'true';
+    }
+    if (sizeOk && stockOk) {
       cell.classList.remove('filter-hidden');
       visible++;
     } else {
       cell.classList.add('filter-hidden');
     }
   });
-  /* Toolbar Filter button count chip — shows total active sizes when filter is on */
+  /* Toolbar Filter button count chip — total active filters (sizes + in-stock toggle) */
   var chip = get('filterCount');
   if (chip) {
-    var n = active ? Object.keys(active).length : 0;
+    var n = (activeSize ? Object.keys(activeSize).length : 0) + (inStock ? 1 : 0);
     chip.textContent = n > 0 ? n : '';
     chip.classList.toggle('on', n > 0);
   }
@@ -442,19 +452,25 @@ function applyFilter() {
   if (ac) ac.textContent = visible;
 }
 
-/* Write current pill state to ?size=A,B URL param via pushState (no reload). */
+/* Write current filter state to URL params via pushState (no reload). */
 function syncFilterToUrl() {
-  var active = getActiveSizeFilter();
+  var activeSize = getActiveSizeFilter();
+  var inStock = getActiveInStockFilter();
   var url = new URL(window.location.href);
-  if (active) {
-    url.searchParams.set('size', Object.keys(active).join(','));
+  if (activeSize) {
+    url.searchParams.set('size', Object.keys(activeSize).join(','));
   } else {
     url.searchParams.delete('size');
+  }
+  if (inStock) {
+    url.searchParams.set('in_stock', '1');
+  } else {
+    url.searchParams.delete('in_stock');
   }
   window.history.replaceState({}, '', url.toString());
 }
 
-/* Read ?size from URL and pre-select matching pills. Safe to call on any page. */
+/* Read filter state from URL and pre-apply to pills + toggle. Safe to call on any page. */
 function syncFilterFromUrl() {
   var params = new URLSearchParams(window.location.search);
   var raw = params.get('size') || '';
@@ -468,18 +484,23 @@ function syncFilterFromUrl() {
     var v = (p.dataset.size || '').toUpperCase();
     p.setAttribute('aria-pressed', wanted[v] ? 'true' : 'false');
   });
+  var toggle = get('filterInStockToggle');
+  if (toggle) toggle.checked = params.get('in_stock') === '1';
 }
 
 function clearFilter() {
   var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
   pills.forEach(function(p) { p.setAttribute('aria-pressed', 'false'); });
+  var toggle = get('filterInStockToggle');
+  if (toggle) toggle.checked = false;
   syncFilterToUrl();
   applyFilter();
 }
 
 function initFilter() {
   var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
-  if (!pills.length) return;
+  var toggle = get('filterInStockToggle');
+  if (!pills.length && !toggle) return;
   pills.forEach(function(p) {
     p.addEventListener('click', function() {
       var pressed = this.getAttribute('aria-pressed') === 'true';
@@ -488,6 +509,12 @@ function initFilter() {
       applyFilter();
     });
   });
+  if (toggle) {
+    toggle.addEventListener('change', function() {
+      syncFilterToUrl();
+      applyFilter();
+    });
+  }
   syncFilterFromUrl();
   applyFilter();
 }

@@ -1,0 +1,88 @@
+<!-- ══════ LOOKBOOK GRID ══════ -->
+<div id="shopSection">
+
+  {% assign col = collections['drop-02'] %}
+  {%- assign drop_dt = settings.drop_datetime | default: '2026-05-29T12:00:00-04:00' -%}
+
+  <!-- ══════ COUNTDOWN HERO ══════ -->
+  <div class="lb-countdown" id="lbCountdown" data-target="{{ drop_dt | escape }}" aria-hidden="true">
+    <p class="lb-countdown-eyebrow">Drops in</p>
+    <div class="lb-countdown-grid">
+      <div class="lb-countdown-unit">
+        <span class="lb-countdown-num" id="lbCdDays">--</span>
+        <span class="lb-countdown-label">Days</span>
+      </div>
+      <span class="lb-countdown-sep">:</span>
+      <div class="lb-countdown-unit">
+        <span class="lb-countdown-num" id="lbCdHours">--</span>
+        <span class="lb-countdown-label">Hrs</span>
+      </div>
+      <span class="lb-countdown-sep">:</span>
+      <div class="lb-countdown-unit">
+        <span class="lb-countdown-num" id="lbCdMins">--</span>
+        <span class="lb-countdown-label">Min</span>
+      </div>
+      <span class="lb-countdown-sep">:</span>
+      <div class="lb-countdown-unit">
+        <span class="lb-countdown-num" id="lbCdSecs">--</span>
+        <span class="lb-countdown-label">Sec</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">
+      {{ col.title }}
+      <span style="font-weight:300;opacity:.45;">({{ col.products_count }})</span>
+    </span>
+    <div class="toolbar-actions">
+      <button type="button" class="toolbar-filter" onclick="openFilter()" aria-label="Filter">
+        <svg width="12" height="10" viewBox="0 0 14 12" fill="none" aria-hidden="true">
+          <path d="M1 1h12M3 6h8M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span>Filter</span>
+        <span class="toolbar-filter-count" id="filterCount" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  {% paginate col.products by 40 %}
+
+    <div class="grid" id="productGrid">
+      {% if col.products_count > 0 %}
+        {% for product in col.products %}
+          {% render 'product-card', product: product %}
+        {% endfor %}
+      {% else %}
+        <div style="grid-column:1/-1;padding:80px;text-align:center;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#888;">
+          No products yet
+        </div>
+      {% endif %}
+    </div><!-- /grid -->
+
+    {% if paginate.next %}
+      <div class="load-more-wrap" id="loadMoreWrap">
+        <button
+          class="load-more-btn"
+          id="loadMoreBtn"
+          data-next-url="{{ paginate.next.url }}&view=grid"
+          onclick="shopifyLoadMore(this)">
+          Load More ({{ paginate.next.items_count }} remaining)
+        </button>
+      </div>
+    {% endif %}
+
+  {% endpaginate %}
+
+  <footer class="lb-footer">
+    &copy; {{ 'now' | date: '%Y' }} Hawks Closet &middot; <a href="https://instagram.com/hawks.vtg" target="_blank">@hawks.vtg</a>
+  </footer>
+
+</div><!-- /shopSection -->
+
+{% schema %}
+{
+  "name": "Lookbook Homepage",
+  "settings": []
+}
+{% endschema %}

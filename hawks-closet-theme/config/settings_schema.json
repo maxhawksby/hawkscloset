@@ -96,7 +96,7 @@
         "type": "text",
         "id": "current_drop_handle",
         "label": "Current drop collection handle",
-        "default": "drop-02-available",
+        "default": "drop-02",
         "info": "The collection handle (e.g. 'drop-01', 'drop-02') shown on the homepage by default. Update this when a new drop launches."
       },
       {

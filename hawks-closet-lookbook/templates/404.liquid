@@ -1,0 +1,43 @@
+<div class="error-page">
+  <p class="error-code">404</p>
+  <h1 class="error-title">Page not found</h1>
+  <p class="error-body">The page you're looking for doesn't exist or has been moved.</p>
+  <a href="/" class="btn-inline">Back to shop &rarr;</a>
+</div>
+
+<style>
+  .error-page {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  }
+  .error-code {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: #999;
+    margin: 0 0 1rem;
+  }
+  .error-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin: 0 0 1rem;
+  }
+  .error-body {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0 0 2rem;
+  }
+  .btn-inline {
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: #000;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .btn-inline:hover { color: #555; }
+</style>

@@ -1,8 +1,7 @@
 {% comment %}
-  Filter drawer — slides in from the left, mirrors the menu drawer's CSS pattern.
+  Filter drawer — slides in from the left.
   Size taxonomy comes from theme settings (settings.size_filter_options, comma-separated).
-  Each pill carries `data-size="L"` etc.; the active filter state, URL-sync, and grid
-  hide/show logic all live in assets/script.js (openFilter, applyFilterFromUrl, etc.).
+  Each pill carries `data-size="L"` etc.; URL sync + grid hide/show logic live in script.js.
 {% endcomment %}
 
 {%- assign size_options_raw = settings.size_filter_options | default: 'XS,S,M,L,XL,XXL,OS' -%}
@@ -17,15 +16,6 @@
   </div>
 
   <div class="filter-body">
-    <section class="filter-section">
-      <h3 class="filter-section-label">Availability</h3>
-      <label class="filter-toggle">
-        <input type="checkbox" id="filterInStockToggle" />
-        <span class="filter-toggle-box" aria-hidden="true"></span>
-        <span class="filter-toggle-label">Only show available</span>
-      </label>
-    </section>
-
     <section class="filter-section">
       <h3 class="filter-section-label">Size</h3>
       <div class="filter-pills" id="filterPillsSize" role="group" aria-label="Filter by size">

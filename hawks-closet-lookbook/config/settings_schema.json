@@ -1,0 +1,116 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Hawks Closet Lookbook",
+    "theme_version": "1.0.0",
+    "theme_author": "Hawks Closet",
+    "theme_documentation_url": "https://hawkscloset.com",
+    "theme_support_url": "https://hawkscloset.com"
+  },
+  {
+    "name": "Brand",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "label": "Logo width (px)",
+        "min": 40,
+        "max": 200,
+        "step": 4,
+        "default": 80
+      },
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "Brand name",
+        "default": "Hawks Closet"
+      }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Background",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Body text",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Borders",
+        "default": "#e8e8e8"
+      }
+    ]
+  },
+  {
+    "name": "Lookbook",
+    "settings": [
+      {
+        "type": "text",
+        "id": "drop_datetime",
+        "label": "Drop date/time (ISO 8601)",
+        "default": "2026-05-29T12:00:00-04:00",
+        "info": "When the drop goes live. Used by the homepage countdown. Example: 2026-05-29T12:00:00-04:00 (May 29, 2026 at noon EDT). Set to a past date to hide the countdown."
+      },
+      {
+        "type": "text",
+        "id": "size_filter_options",
+        "label": "Size filter options",
+        "default": "XS,S,M,L,XL,XXL,OS",
+        "info": "Comma-separated size labels for the filter drawer. Order shown matches the order here."
+      }
+    ]
+  },
+  {
+    "name": "Social & Contact",
+    "settings": [
+      {
+        "type": "text",
+        "id": "instagram_handle",
+        "label": "Instagram handle",
+        "default": "hawks.vtg",
+        "info": "Without the @ symbol"
+      },
+      {
+        "type": "text",
+        "id": "contact_email",
+        "label": "Contact email",
+        "default": "hawkscloset@gmail.com"
+      }
+    ]
+  },
+  {
+    "name": "Password Page",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "password_bg_image",
+        "label": "Background image",
+        "info": "Recommended: 16:9 ratio (1920×1080 px or larger), centered focal point, under 2MB."
+      },
+      {
+        "type": "range",
+        "id": "password_overlay_opacity",
+        "label": "Dark overlay opacity",
+        "min": 0,
+        "max": 90,
+        "step": 5,
+        "default": 55,
+        "info": "Controls how dark the overlay is on top of the background image. Higher = more readable text."
+      }
+    ]
+  }
+]
