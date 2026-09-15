@@ -141,6 +141,13 @@
     "name": "Password Page",
     "settings": [
       {
+        "type": "text",
+        "id": "next_drop_at",
+        "label": "Next drop date and time",
+        "default": "2026-09-26T12:00:00-04:00",
+        "info": "ISO date with timezone offset. September 26 at noon New York: 2026-09-26T12:00:00-04:00. This timer does not remove store password protection."
+      },
+      {
         "type": "image_picker",
         "id": "password_bg_image",
         "label": "Background image",
