@@ -16,7 +16,7 @@ Hawks Closet sells one-of-one vintage graphic tees ($350-850), each with a year,
 - **Sold pieces:** stay on the walls, marked with a gallery-style red dot and "Sold", still viewable.
 - **Product page:** minimal like Yeezy: name, price, size, buy. Large floating piece, zoom and alternate views, measurements available without clutter.
 - **Cart:** drawer with the existing add-to-cart animation, straight path to Shopify checkout.
-- **Archive:** every sold piece, browsable by drop or year.
+- **Archive:** every sold piece, browsable by drop or year. The entire current catalog is already sold and moves here; the live shop starts with a fresh set of pieces (15-20 test items first).
 - **About:** short brand page.
 - **Upcoming pieces:** announced pieces can be teased with a notify-me signup (existing SMS signup).
 - **Launch page:** password page with a countdown to **Friday, October 16, 2026, 12:00 noon New York time (EDT)**, a slot for Max's launch video (16:9 desktop, 9:16 mobile), and the current photo background until the video exists.
