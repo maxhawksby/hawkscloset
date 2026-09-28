@@ -46,9 +46,12 @@ Hawks Closet sells one-of-one vintage graphic tees ($350-850), each with a year,
 - Max can open the password page and see the countdown to October 16 at noon New York time; after he drops in the two video files, the right one plays on desktop and on phone.
 - Max can click through the whole flow on the Shopify preview theme before anything goes live.
 
+## Decisions (2026-09-28)
+- **Cutouts:** Max shoots flat lays, and they are consistent enough in angle and framing to hold one scale on the grid.
+- **Placeholder shirt:** v1 uses one stand-in black tee for every grid tile and product page (`docs/design/placeholder-tee.png`, 345x340 with a light grey background, so it needs a cutout or a larger source before it goes to production). Max swaps in the real photos in Shopify later.
+- **Launch video:** coming soon. Until it arrives, the launch page uses the current password-page photo.
+- **Launch-day unlock:** the store password should come off automatically at noon New York time on October 16. How to do that reliably on Shopify is researched in milestone 4. Max can switch it off by hand as the fallback.
+
 ## Open questions
-- Are the product cutouts consistent in angle and framing? Uneven ones may need retouching to hold the same scale on the grid.
 - Editorial images for the grid (Sigma-style large tiles): does Max have photos, or do we skip them in v1?
-- When will the launch videos be delivered? They are needed before milestone 4 is finished.
-- Launch-day unlock: removing the store password is a manual Shopify setting. Who flips it at noon, and what is the fallback?
 - The previous brief (password page, now done) is in `docs/archive/`.
