@@ -1,0 +1,16 @@
+{
+  "name": "hawkscloset-storefront",
+  "private": true,
+  "scripts": {
+    "preview:render": "python3 scripts/render-password-preview.py",
+    "preview": "python3 scripts/render-password-preview.py && node scripts/render-gallery-preview.cjs && python3 scripts/preview-server.py",
+    "test": "node --test tests/countdown.test.cjs",
+    "theme:check": "shopify theme check --path hawks-closet-theme",
+    "theme:list": "shopify theme list --store ri5pxg-pg.myshopify.com",
+    "theme:dev": "shopify theme dev --store ri5pxg-pg.myshopify.com --path hawks-closet-theme"
+  },
+  "devDependencies": {
+    "liquidjs": "^10.29.0",
+    "playwright": "^1.63.0"
+  }
+}

@@ -17,7 +17,7 @@
 {% assign price_dollars = product.price | divided_by: 100 %}
 
 {% assign condition = product.metafields.custom.condition.value | default: '' %}
-{% assign size      = product.metafields.custom.size.value      | default: '' %}
+{% assign size      = product.metafields.custom.size.value      | default: product.variants.first.title %}
 {% assign era       = product.metafields.custom.era.value       | default: '' %}
 {% assign material  = product.metafields.custom.material.value  | default: '' %}
 
@@ -50,7 +50,7 @@
     {% if product.featured_image %}
       <img
         src="{{ product.featured_image | image_url: width: 800 }}"
-        alt="{{ product.title | escape }}"
+        alt="{{ product.featured_image.alt | default: product.title | escape }}"
         loading="lazy">
     {% else %}
       <div class="grid-ph">

@@ -2,3 +2,10 @@
 *.DS_Store
 .claude/
 node_modules/
+.shopify/
+.local/
+
+# Generated local previews and Python cache
+preview/
+output/
+__pycache__/

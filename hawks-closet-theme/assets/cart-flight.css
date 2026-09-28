@@ -1,0 +1,15 @@
+.cart-flight {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1100;
+  transform-origin: center;
+  will-change: transform, opacity;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 20px 40px #0003;
+}
+.cart-flight img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Open checkout above the item screen, keeping the selected piece in place. */
+.cart-backdrop { z-index: 800; }
+.cart-panel { z-index: 900; }

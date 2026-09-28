@@ -82,6 +82,7 @@ function addToCart(variantId, name, onDone) {
         if (onDone) onDone(false);
       });
     }
+    if (!r.ok) throw new Error('Cart request failed');
     return r.json().then(function() {
       showToast(name + ' added to cart');
       fetchCart();
@@ -183,15 +184,143 @@ function goCheckout() {
 }
 
 /* ═══════════════════════════════════════
-   SORT — re-orders DOM nodes
-   (products are server-rendered by Liquid)
-   Note: sorts only loaded cards. Full
-   sort requires a page reload with
-   Shopify sort_by param — wired below.
+   SORT — page reload with Shopify sort_by.
+   Stays on the current collection if we're
+   on /collections/X; otherwise (homepage)
+   redirects to /collections/drop-01.
 ═══════════════════════════════════════ */
 function doSort() {
   var v = get('sortSel').value;
-  window.location.href = v ? '/collections/all?sort_by=' + v : '/collections/all';
+  var path = window.location.pathname;
+  var base = path.indexOf('/collections/') === 0 ? path : '/collections/drop-01';
+  window.location.href = v ? base + '?sort_by=' + v : base;
+}
+
+/* ═══════════════════════════════════════
+   SEARCH OVERLAY (Shopify Predictive Search API)
+   Nav input opens the overlay; real input is
+   inside #overlaySearch. On each keystroke we
+   debounce 150ms then hit /search/suggest.json.
+   In-flight requests are aborted when a newer
+   keystroke supersedes them. Click on a result
+   navigates to the product page (full data via
+   Shopify's product template).
+═══════════════════════════════════════ */
+var _searchDebounce = null;
+var _searchAbort = null;
+var SEARCH_DEBOUNCE_MS = 150;
+var SEARCH_LIMIT = 10;
+
+function openSearch() {
+  var ov = get('searchOverlayInput');
+  if (ov) { ov.value = ''; }
+  doSearch(); /* clears suggestions + results */
+  openOverlay('overlaySearch');
+  /* small delay so slide-in animation doesn't fight focus */
+  setTimeout(function() {
+    if (ov) ov.focus();
+    var nav = get('searchInput');
+    if (nav) nav.blur();
+  }, 80);
+}
+
+function doSearch() {
+  var ov = get('searchOverlayInput');
+  var q = ((ov && ov.value) || '').trim();
+  var resultsGrid = get('searchResultsGrid');
+  var sugWrap = get('searchSuggestions');
+  if (!resultsGrid || !sugWrap) return;
+
+  /* Cancel any pending debounced call + in-flight request */
+  if (_searchDebounce) { clearTimeout(_searchDebounce); _searchDebounce = null; }
+  if (_searchAbort) { _searchAbort.abort(); _searchAbort = null; }
+
+  /* Empty input → clear and exit */
+  if (!q) {
+    resultsGrid.innerHTML = '';
+    sugWrap.innerHTML = '';
+    return;
+  }
+
+  /* Debounce: wait 150ms after last keystroke before firing */
+  _searchDebounce = setTimeout(function() {
+    fetchSearch(q);
+  }, SEARCH_DEBOUNCE_MS);
+}
+
+function fetchSearch(q) {
+  var resultsGrid = get('searchResultsGrid');
+  var sugWrap = get('searchSuggestions');
+  var url = '/search/suggest.json'
+    + '?q=' + encodeURIComponent(q)
+    + '&resources[type]=product'
+    + '&resources[limit]=' + SEARCH_LIMIT
+    + '&resources[options][unavailable_products]=show';
+
+  _searchAbort = new AbortController();
+  fetch(url, { signal: _searchAbort.signal })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var products = (data.resources && data.resources.results && data.resources.results.products) || [];
+      renderSearchResults(products);
+    })
+    .catch(function(err) {
+      if (err.name === 'AbortError') return; /* superseded by newer keystroke */
+      resultsGrid.innerHTML = '<p class="grid-empty">Search unavailable. Try again.</p>';
+      sugWrap.innerHTML = '';
+    });
+}
+
+function renderSearchResults(products) {
+  var resultsGrid = get('searchResultsGrid');
+  var sugWrap = get('searchSuggestions');
+  resultsGrid.innerHTML = '';
+  sugWrap.innerHTML = '';
+
+  if (products.length === 0) {
+    resultsGrid.innerHTML = '<p class="grid-empty">No pieces match that search.</p>';
+    return;
+  }
+
+  /* Suggestions: top 3 matched product titles */
+  products.slice(0, 3).forEach(function(p) {
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'search-suggestion';
+    s.textContent = p.title;
+    s.onclick = function() { window.location.href = p.url; };
+    sugWrap.appendChild(s);
+  });
+
+  products.forEach(function(p) {
+    resultsGrid.appendChild(buildResultCell(p));
+  });
+}
+
+/* Builds a .grid-cell <a> from a Shopify Predictive Search product object */
+function buildResultCell(p) {
+  var cell = document.createElement('a');
+  cell.href = p.url;
+  cell.className = 'grid-cell' + (p.available ? '' : ' sold');
+  var thumb = p.image || (p.featured_image && p.featured_image.url) || '';
+  var safeName = (p.title || '').replace(/"/g, '&quot;');
+  /* Predictive search returns price as a formatted string like "$400.00".
+     Strip non-numeric to a clean integer dollar amount. Fallback for cents. */
+  var priceStr = (typeof p.price === 'string')
+    ? p.price.replace(/[^\d.]/g, '').split('.')[0]
+    : Math.round((p.price || 0) / 100);
+  cell.innerHTML =
+    '<div class="grid-img">' +
+      (thumb
+        ? '<img src="' + thumb + '" alt="' + safeName + '" loading="lazy">'
+        : '<div class="grid-ph"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="4" y="8" width="28" height="22" rx="2" stroke="#ccc" stroke-width="1.5"/><path d="M4 14h28" stroke="#ccc" stroke-width="1.5"/><circle cx="18" cy="23" r="4" stroke="#ccc" stroke-width="1.5"/></svg></div>') +
+      '<div class="sold-tag"><span>Sold</span></div>' +
+    '</div>' +
+    '<div class="grid-info">' +
+      '<p class="grid-name">' + (p.title || '') + '</p>' +
+      '<p class="grid-price">$' + priceStr + '</p>' +
+    '</div>';
+  return cell;
 }
 
 /* ═══════════════════════════════════════
@@ -220,6 +349,9 @@ function shopifyLoadMore(btn) {
         grid.appendChild(document.importNode(card, true));
       });
 
+      // Newly-appended cells must respect any active size filter
+      applyFilter();
+
       // Check if there's another page
       var nextUrlEl = doc.getElementById('nextPageUrl');
       var wrap = get('loadMoreWrap');
@@ -233,11 +365,159 @@ function shopifyLoadMore(btn) {
         // No more pages — hide the button
         if (wrap) wrap.style.display = 'none';
       }
+
     })
     .catch(function() {
       btn.textContent = 'Load More';
       btn.disabled = false;
     });
+}
+
+/* ═══════════════════════════════════════
+   SIZE FILTER
+   Toggleable drawer (same pattern as menu).
+   Pills are multi-select; state syncs to URL
+   (?size=L,XL) via pushState so views are
+   shareable. Filter hides .grid-cell whose
+   data-size is not in the active set. The
+   filter is reapplied after Load More appends.
+═══════════════════════════════════════ */
+function openFilter() {
+  var d = get('filterDrawer');
+  var b = get('filterBackdrop');
+  if (!d || !b) return;
+  d.classList.add('on');
+  d.setAttribute('aria-hidden', 'false');
+  b.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeFilter() {
+  var d = get('filterDrawer');
+  var b = get('filterBackdrop');
+  if (!d || !b) return;
+  d.classList.remove('on');
+  d.setAttribute('aria-hidden', 'true');
+  b.classList.remove('on');
+  if (!document.querySelector('.overlay.on') && !get('cartPanel').classList.contains('on')) {
+    document.body.style.overflow = '';
+  }
+}
+
+/* Read active pills, return uppercased Set of sizes (or null = no filter). */
+function getActiveSizeFilter() {
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill[aria-pressed="true"]');
+  if (!pills.length) return null;
+  var set = {};
+  pills.forEach(function(p) { set[(p.dataset.size || '').toUpperCase()] = true; });
+  return set;
+}
+
+/* Read in-stock toggle state — true = hide sold cells. */
+function getActiveInStockFilter() {
+  var t = get('filterInStockToggle');
+  return !!(t && t.checked);
+}
+
+/* Hide/show grid cells based on active filters. Updates counts and clear-all visibility. */
+function applyFilter() {
+  var activeSize = getActiveSizeFilter();
+  var inStock = getActiveInStockFilter();
+  var cells = document.querySelectorAll('#productGrid .grid-cell');
+  var visible = 0;
+  cells.forEach(function(cell) {
+    var sizeOk = true;
+    if (activeSize) {
+      var sz = (cell.dataset.size || '').toUpperCase();
+      sizeOk = sz && activeSize[sz];
+    }
+    var stockOk = true;
+    if (inStock) {
+      stockOk = cell.dataset.sold !== 'true';
+    }
+    if (sizeOk && stockOk) {
+      cell.classList.remove('filter-hidden');
+      visible++;
+    } else {
+      cell.classList.add('filter-hidden');
+    }
+  });
+  /* Toolbar Filter button count chip — total active filters (sizes + in-stock toggle) */
+  var chip = get('filterCount');
+  if (chip) {
+    var n = (activeSize ? Object.keys(activeSize).length : 0) + (inStock ? 1 : 0);
+    chip.textContent = n > 0 ? n : '';
+    chip.classList.toggle('on', n > 0);
+  }
+  /* In-drawer "View N" count */
+  var ac = get('filterApplyCount');
+  if (ac) ac.textContent = visible;
+}
+
+/* Write current filter state to URL params via pushState (no reload). */
+function syncFilterToUrl() {
+  var activeSize = getActiveSizeFilter();
+  var inStock = getActiveInStockFilter();
+  var url = new URL(window.location.href);
+  if (activeSize) {
+    url.searchParams.set('size', Object.keys(activeSize).join(','));
+  } else {
+    url.searchParams.delete('size');
+  }
+  if (inStock) {
+    url.searchParams.set('in_stock', '1');
+  } else {
+    url.searchParams.delete('in_stock');
+  }
+  window.history.replaceState({}, '', url.toString());
+}
+
+/* Read filter state from URL and pre-apply to pills + toggle. Safe to call on any page. */
+function syncFilterFromUrl() {
+  var params = new URLSearchParams(window.location.search);
+  var raw = params.get('size') || '';
+  var wanted = {};
+  raw.split(',').forEach(function(s) {
+    var v = s.trim().toUpperCase();
+    if (v) wanted[v] = true;
+  });
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
+  pills.forEach(function(p) {
+    var v = (p.dataset.size || '').toUpperCase();
+    p.setAttribute('aria-pressed', wanted[v] ? 'true' : 'false');
+  });
+  var toggle = get('filterInStockToggle');
+  if (toggle) toggle.checked = params.get('in_stock') === '1';
+}
+
+function clearFilter() {
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
+  pills.forEach(function(p) { p.setAttribute('aria-pressed', 'false'); });
+  var toggle = get('filterInStockToggle');
+  if (toggle) toggle.checked = false;
+  syncFilterToUrl();
+  applyFilter();
+}
+
+function initFilter() {
+  var pills = document.querySelectorAll('#filterPillsSize .filter-pill');
+  var toggle = get('filterInStockToggle');
+  if (!pills.length && !toggle) return;
+  pills.forEach(function(p) {
+    p.addEventListener('click', function() {
+      var pressed = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+      syncFilterToUrl();
+      applyFilter();
+    });
+  });
+  if (toggle) {
+    toggle.addEventListener('change', function() {
+      syncFilterToUrl();
+      applyFilter();
+    });
+  }
+  syncFilterFromUrl();
+  applyFilter();
 }
 
 /* ═══════════════════════════════════════
@@ -338,8 +618,9 @@ function pdAddToCart() {
 
   addToCart(variantId, name, function(success) {
     if (success) {
-      closeOverlay('overlayProduct');
-      setTimeout(openCart, 350);
+      btn.classList.remove('loading');
+      btn.textContent = 'Add to Cart';
+      openCart();
     } else {
       /* sold out during high-traffic — update overlay button */
       btn.textContent = 'Sold Out';
@@ -387,9 +668,11 @@ function pdBuyNow() {
 ═══════════════════════════════════════ */
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
+  if (get('cartPanel').classList.contains('on')) { closeCart(); return; }
   var open = document.querySelector('.overlay.on');
   if (open) { open.classList.remove('on'); document.body.style.overflow = ''; return; }
-  if (get('cartPanel').classList.contains('on')) { closeCart(); return; }
+  var fd = get('filterDrawer');
+  if (fd && fd.classList.contains('on')) { closeFilter(); return; }
   if (get('drawer').classList.contains('on')) { closeDrawer(); }
 });
 
@@ -410,4 +693,5 @@ function preloadAllGalleryImages() {
 document.addEventListener('DOMContentLoaded', function() {
   fetchCart();
   preloadAllGalleryImages();
+  initFilter();
 });

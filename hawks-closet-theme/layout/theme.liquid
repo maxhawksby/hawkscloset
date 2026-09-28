@@ -4,14 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page_title }} — Hawks Closet</title>
+
+  {%- liquid
+    if template contains 'product'
+      assign og_title = product.title
+      assign og_desc  = product.description | strip_html | strip_newlines | truncate: 160
+      assign og_image = product.featured_image | image_url: width: 1200 | prepend: 'https:'
+      assign og_type  = 'product'
+    elsif template contains 'collection'
+      assign og_title = collection.title
+      assign og_desc  = collection.description | strip_html | strip_newlines | truncate: 160 | default: shop.description
+      assign og_image = collection.image | image_url: width: 1200 | prepend: 'https:'
+      assign og_type  = 'website'
+    else
+      assign og_title = page_title
+      assign og_desc  = page_description | default: shop.description | default: 'Curated vintage from Hawks Closet — drop-based, one-of-one pieces sourced by hand.'
+      assign og_image = 'logo.png' | asset_url | prepend: 'https:'
+      assign og_type  = 'website'
+    endif
+  -%}
+  <meta name="description" content="{{ og_desc | escape }}">
+  <meta property="og:type" content="{{ og_type }}">
+  <meta property="og:title" content="{{ og_title | escape }}">
+  <meta property="og:description" content="{{ og_desc | escape }}">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:site_name" content="Hawks Closet">
+  <meta name="twitter:card" content="summary_large_image">
+
   {{ content_for_header }}
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   {{ 'style.css' | asset_url | stylesheet_tag }}
+  {{ 'cart-flight.css' | asset_url | stylesheet_tag }}
 </head>
 <body>
 
 <!-- ══════ DRAWER BACKDROP ══════ -->
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+
+<!-- ══════ FILTER DRAWER ══════ -->
+<div class="drawer-backdrop" id="filterBackdrop" onclick="closeFilter()"></div>
+{% render 'filter-drawer' %}
 
 <!-- ══════ DRAWER MENU ══════ -->
 <div class="drawer" id="drawer">
@@ -22,8 +54,9 @@
     </button>
   </div>
   <nav class="drawer-nav">
-    <a href="#" onclick="closeDrawer();scrollToShop();return false;">New Arrivals</a>
-    <a href="#" onclick="closeDrawer();scrollToShop();return false;">Archive</a>
+    <a href="/collections/drop-02" onclick="closeDrawer()">Drop 02</a>
+    <a href="/collections/drop-01" onclick="closeDrawer()">Drop 01</a>
+    <a href="/collections/archive" onclick="closeDrawer()">Archive</a>
     <div class="drawer-sep"></div>
     <a href="#" onclick="closeDrawer();openAbout();return false;">About</a>
     <a href="mailto:hawkscloset@gmail.com">Contact</a>
@@ -37,12 +70,13 @@
     <span></span>
     <span></span>
   </button>
-  <a class="nav-brand" href="/" onclick="scrollToShop();return false;">
+  <a class="nav-brand" href="/" onclick="scrollToShop();return false;" aria-label="Hawks Closet home">
     <img class="nav-logo" src="{{ 'logo.png' | asset_url }}" alt="Hawks Closet">
-    <span class="nav-brand-name">Hawks Closet</span>
   </a>
+  <div class="nav-search">
+    <input type="text" id="searchInput" placeholder="Search pieces" onfocus="openSearch()" onclick="openSearch()" readonly autocomplete="off" aria-label="Search pieces">
+  </div>
   <div class="nav-right">
-    <a href="/" onclick="scrollToShop();return false;">Shop</a>
     <div class="nav-cart" onclick="openCart()" role="button" aria-label="Cart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
@@ -144,9 +178,31 @@
   </div>
 </div>
 
+<!-- ══════ SEARCH OVERLAY ══════ -->
+<div class="overlay" id="overlaySearch">
+  <div class="overlay-bar">
+    <button class="overlay-bar-back" onclick="closeOverlay('overlaySearch')">
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M5 1L1 5l4 4M1 5h12" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Close
+    </button>
+    <span class="overlay-bar-title">Search</span>
+    <div class="overlay-bar-right"></div>
+  </div>
+  <div class="search-panel">
+    <div class="search-input-wrap">
+      <input type="text" id="searchOverlayInput" placeholder="Search pieces" oninput="doSearch()" autocomplete="off">
+    </div>
+    <div class="search-suggestions" id="searchSuggestions"></div>
+    <div class="search-results-wrap">
+      <div class="grid" id="searchResultsGrid"></div>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script src="{{ 'script.js' | asset_url }}"></script>
+<script src="{{ 'cart-flight.js' | asset_url }}" defer></script>
 </body>
 </html>
