@@ -8,6 +8,18 @@ Shopify storefront for [hawkscloset.com](https://hawkscloset.com), store `ri5pxg
 - `hawks-closet/` is an older static prototype, not the deployed storefront.
 - `docs/STATUS.md` records current delivery and verification status.
 
+## Gallery rebuild
+
+`gallery-theme/` is the new gallery storefront theme (see [docs/BRIEF.md](docs/BRIEF.md) and [docs/LAUNCH.md](docs/LAUNCH.md)). It is not uploaded to Shopify yet.
+
+```sh
+npm run gallery          # render and serve on http://localhost:4181/
+npm run gallery:check    # Shopify Theme Check
+node tests/gallery-theme-browser.cjs   # end-to-end checks, preview must be running
+```
+
+Preview-only pages: `/launch` (launch screen), `/password`, `/collections/states-upcoming`, `/collections/states-empty`.
+
 ## Local work
 
 The installed Shopify CLI is authenticated to Maxwell's account. Credentials stay in Shopify CLI's user configuration and are not included in this repository.

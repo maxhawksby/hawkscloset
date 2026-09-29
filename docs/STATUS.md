@@ -1,17 +1,19 @@
 # Status
 
-## Pick up here (saved 2026-09-27)
-Gallery rebuild planned. Source of truth: [BRIEF.md](BRIEF.md). No rebuild code written yet.
+## Pick up here (saved 2026-09-28)
+Gallery rebuild is built locally in `gallery-theme/` (a new theme; `hawks-closet-theme/` still mirrors the live shop). Source of truth: [BRIEF.md](BRIEF.md). Launch plan: [LAUNCH.md](LAUNCH.md).
 
-Tomorrow's agenda, in order:
-1. **Baseline commit** - ask Max to approve committing the ~30 uncommitted files (live cart animation + password page) as a clean baseline before the rebuild.
-2. **Shopify connection check** - confirm Shopify CLI is authenticated to `ri5pxg-pg.myshopify.com`, live theme is `drop02 Final` (`150280110158`), and a fresh pull matches local.
-3. **Archive the sold catalog** - every current product is sold. Move them all into an Archive collection (and out of the main shop view). Plan the change, show Max, then apply with his approval.
-4. **Max loads 15-20 new test items** - help check they come in clean (cutouts, sizes, prices) for the new grid.
-5. Then **milestone 1** of the brief: direction check (home/grid + product page, built locally with real products).
+- Preview: `npm run gallery`, then http://localhost:4181/ (placeholder tee on every piece, simulated cart, no Shopify writes). Screenshots and demo videos: `docs/previews/gallery/`.
+- Tests: `node tests/gallery-theme-browser.cjs` with the preview running (45 checks: desktop, phone, reduced motion). `npm run gallery:check` runs Theme Check (clean).
+- Catalog: all 175 products are sold and sit in the Archive smart collection (37 Drop 02 pieces were set from 1 to 0 on 2026-09-28; undo record `docs/archive/drop02-sold-out-2026-09-28.csv`). Store is still password-protected.
+- Milestones: 1-3 built; 4 built except the Shopify preview upload (needs Max's OK); 5 is launch day.
 
-Tooling note: headless Chromium needs `libasound.so.2`, which is not installed system-wide. A copy was extracted to the session scratchpad; reinstall via `apt-get download libasound2t64` + `dpkg-deb -x`, then run with `LD_LIBRARY_PATH` pointing at it (or `sudo apt install libasound2t64`).
+Next, in order:
+1. Max reviews the look (direction check) and gives one feedback list.
+2. Max loads 15-20 new pieces (flat lays) and schedules them for Oct 16 noon (see LAUNCH.md).
+3. With Max's OK: upload `gallery-theme/` as an unpublished Shopify theme; Max clicks through; verify the launch-screen clock on Shopify.
 
+Tooling: headless Chromium needs `libasound.so.2`. `apt-get download libasound2t64 && dpkg-deb -x libasound2t64*.deb asound`, then run tests with `LD_LIBRARY_PATH=<dir>/asound/usr/lib/x86_64-linux-gnu` (or `sudo apt install libasound2t64`).
 
 ## Latest: cart update published and verified
 The approved animation → checkout-sidebar flow is live on theme `150280110158`. Exactly five files changed; all other theme files and the password page are byte-identical to the pre-release download. Live desktop/mobile test carts passed and were cleaned up. See [CART-RELEASE.md](CART-RELEASE.md). Tonight’s work is complete. Next session: a feature/UX audit of the actual site, not a UI redesign. Older unpublished notes below are historical.
