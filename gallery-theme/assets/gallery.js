@@ -56,6 +56,8 @@
       var added = !!inCart[button.dataset.add];
       button.classList.toggle('is-added', added);
       button.textContent = added ? 'In cart' : 'Add';
+      if (!button.dataset.label) button.dataset.label = button.getAttribute('aria-label') || '';
+      button.setAttribute('aria-label', added ? button.dataset.label.replace(/^Add (.*) to cart$/, '$1 is in your cart. Open cart') : button.dataset.label);
       if (added) button.setAttribute('aria-disabled', 'true'); else button.removeAttribute('aria-disabled');
     });
     var buyButton = $('[data-buy-button]');
