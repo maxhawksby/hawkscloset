@@ -59,7 +59,8 @@
   data-created="{{ product.created_at | date: '%s' }}"
   data-drop="{{ drop }}"
   data-decade="{{ decade }}">
-  <a class="piece-link" href="{{ product.url }}">
+  <a class="piece-link" href="{{ product.url }}"
+    {%- if product.featured_image %} data-stage-srcset="{{ product.featured_image | image_url: width: 700 }} 700w, {{ product.featured_image | image_url: width: 1400 }} 1400w, {{ product.featured_image | image_url: width: 2000 }} 2000w"{% endif %}>
     <span class="piece-stage">
       {%- if product.featured_image -%}
         <img class="piece-img" src="{{ product.featured_image | image_url: width: 720 }}"

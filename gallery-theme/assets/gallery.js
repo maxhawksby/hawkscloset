@@ -641,6 +641,39 @@
     } catch (_) { /* keep the plain link */ }
   }
 
+  // Before the click: fetch the piece page's photo and remember the one already on screen.
+  var warmed = {};
+  function warm(link) {
+    if (!link || warmed[link.pathname]) return;
+    warmed[link.pathname] = true;
+    var img = $('.piece-img', link);
+    try { if (img && img.currentSrc) sessionStorage.setItem('stage:' + link.pathname, img.currentSrc); } catch (_) {}
+    if (link.dataset.stageSrcset) {
+      var preload = document.createElement('link');
+      preload.rel = 'preload';
+      preload.as = 'image';
+      preload.setAttribute('imagesrcset', link.dataset.stageSrcset);
+      preload.setAttribute('imagesizes', '(min-width: 900px) 58vw, 100vw');
+      document.head.appendChild(preload);
+    }
+  }
+  ['pointerenter', 'touchstart', 'focusin'].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      var link = event.target.closest && event.target.closest('.piece-link');
+      if (link) warm(link);
+    }, { capture: true, passive: true });
+  });
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest('.piece-link');
+    if (link) warm(link);
+  }, true);
+
+  var stageShirt = $('[data-stage-shirt]');
+  if (stageShirt && stageImg) {
+    var sharp = function () { stageShirt.classList.add('is-loaded'); };
+    if (stageImg.complete && stageImg.naturalWidth) sharp(); else stageImg.addEventListener('load', sharp, { once: true });
+  }
+
   // Name the clicked shirt so the browser can fly it into the piece page (see gallery.css).
   addEventListener('pageswap', function (event) {
     if (!event.viewTransition || !event.activation || !event.activation.entry) return;

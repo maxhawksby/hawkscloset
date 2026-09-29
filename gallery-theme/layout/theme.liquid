@@ -9,7 +9,18 @@
   {{ 'hanken-grotesk.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
   <link rel="stylesheet" href="{{ 'gallery.css' | asset_url }}">
   <script src="{{ 'gallery.js' | asset_url }}" defer></script>
+  <script type="speculationrules">
+    {
+      "prerender": [{ "where": { "href_matches": "/products/*" }, "eagerness": "moderate" }],
+      "prefetch": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }]
+    }
+  </script>
   <script>
+    // Show the photo the wall already loaded while the piece page's sharp photo downloads.
+    try {
+      var cached = sessionStorage.getItem('stage:' + location.pathname);
+      if (cached) document.documentElement.style.setProperty('--stage-fallback', 'url("' + cached.replace(/"/g, '%22') + '")');
+    } catch (e) {}
     // Page-to-page zoom (browsers with cross-document view transitions). Must run before first paint.
     addEventListener('pagereveal', function (event) {
       if (!event.viewTransition) return;

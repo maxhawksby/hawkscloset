@@ -26,11 +26,13 @@
   <div class="product-stage">
     <button type="button" class="stage-frame" data-zoom aria-label="View {{ product.title | escape }} larger">
       {%- if product.featured_image -%}
-        <img class="stage-img" data-stage-img
+        <span class="stage-shirt" data-stage-shirt>
+        <img class="stage-img" data-stage-img fetchpriority="high"
           src="{{ product.featured_image | image_url: width: 1400 }}"
           srcset="{{ product.featured_image | image_url: width: 700 }} 700w, {{ product.featured_image | image_url: width: 1400 }} 1400w, {{ product.featured_image | image_url: width: 2000 }} 2000w"
           sizes="(min-width: 900px) 58vw, 100vw"
           alt="{{ product.featured_image.alt | default: product.title | escape }}" width="1400" height="1400">
+        </span>
       {%- else -%}
         <span class="piece-missing">Photo coming</span>
       {%- endif -%}
