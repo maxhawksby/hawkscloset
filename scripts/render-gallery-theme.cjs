@@ -25,6 +25,7 @@ engine.registerFilter('money_without_trailing_zeros', money);
 engine.registerFilter('money', money);
 engine.registerFilter('pluralize', (count, one, many) => Number(count) === 1 ? one : many);
 engine.registerFilter('video_tag', () => '');
+engine.registerFilter('default_errors', () => '');
 engine.registerFilter('preload_tag', url => `<link rel="preload" href="${url}" as="font" type="font/woff2" crossorigin="anonymous">`);
 // Shopify block tags the preview stands in for.
 engine.registerTag('form', class extends Tag {
@@ -136,6 +137,7 @@ function write(file, html) {
   await renderPage('product', { product: upcoming, page_title: upcoming.title }, 'products/states-upcoming.html');
   await renderPage('search', { search: { terms: '', results: products, results_count: products.length }, previewSearch: true, page_title: 'Search' }, 'search.html');
   await renderPage('page.about', { page: { handle: 'about', title: 'About' }, page_title: 'About' }, 'pages/about.html');
+  await renderPage('page.contact', { page: { handle: 'contact', title: 'Contact', content: '' }, form: {}, page_title: 'Contact' }, 'pages/contact.html');
   await renderPage('404', { page_title: 'Not found' }, '404.html');
   await renderPage('cart', { page_title: 'Cart' }, 'cart.html');
   // Launch gate on, launch time in the future: every page is the launch screen.

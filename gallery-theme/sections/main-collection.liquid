@@ -4,13 +4,18 @@
   elsif section.settings.collection != blank
     assign wall = section.settings.collection
   else
-    assign wall = collections.all
+    comment
+      Home wall default: the "Now showing" collection that new listings go into.
+      Until it exists or has pieces, the wall shows the "being hung" state, never the sold catalog.
+    endcomment
+    assign wall = collections['now-showing']
   endif
+  assign wall_count = wall.products_count | default: 0
   assign archive = false
   if wall.handle == settings.archive_handle
     assign archive = true
   endif
-  assign heading = section.settings.heading | default: wall.title
+  assign heading = section.settings.heading | default: wall.title | default: 'Now showing'
   if collection
     assign heading = wall.title
   endif
@@ -20,9 +25,9 @@
     <h1 class="wall-title" id="wallTitle-{{ section.id }}">{{ heading }}</h1>
     <p class="wall-count mono" data-count aria-live="polite">
       {%- if archive -%}
-        {{ wall.products_count }} pieces, all sold
-      {%- else -%}
-        {{ wall.products_count }} {{ wall.products_count | pluralize: 'piece', 'pieces' }}
+        {{ wall_count }} pieces, all sold
+      {%- elsif wall_count > 0 -%}
+        {{ wall_count }} {{ wall_count | pluralize: 'piece', 'pieces' }}
       {%- endif -%}
     </p>
     {%- if archive -%}
@@ -32,6 +37,7 @@
     {%- endif -%}
   </div>
 
+  {%- if wall_count > 0 -%}
   <div class="toolbar" data-toolbar hidden>
     <div class="toolbar-row">
       {%- unless archive -%}
@@ -55,8 +61,10 @@
     </label>
   </div>
 
+  {%- endif -%}
+
+  {%- if wall_count > 0 -%}
   {%- paginate wall.products by 250 -%}
-    {%- if wall.products.size > 0 -%}
       <ul class="grid" data-grid>
         {%- for product in wall.products -%}
           {% render 'piece-card', product: product, index: forloop.index0 %}
@@ -70,21 +78,24 @@
       {%- if paginate.next -%}
         <p class="more"><a class="text-button" href="{{ paginate.next.url }}">Next wall &rarr;</a></p>
       {%- endif -%}
-    {%- else -%}
-      <div class="empty empty-wall">
-        <p class="empty-title">New pieces are being hung.</p>
-        <p class="empty-sub">Get one text when they go up.</p>
-        <button type="button" class="button button-solid" data-notify="New pieces">Notify me</button>
-      </div>
-    {%- endif -%}
   {%- endpaginate -%}
+  {%- else -%}
+    <div class="empty empty-wall">
+      <p class="empty-title">New pieces are being hung.</p>
+      <p class="empty-sub">Get one text when they go up. Until then, the archive is open.</p>
+      <div class="empty-actions">
+        <button type="button" class="button button-solid" data-notify="New pieces">Notify me</button>
+        <a class="text-button" href="{{ routes.collections_url }}/{{ settings.archive_handle }}">Browse the archive</a>
+      </div>
+    </div>
+  {%- endif -%}
 </section>
 
 {% schema %}
 {
   "name": "Wall of pieces",
   "settings": [
-    { "type": "collection", "id": "collection", "label": "Collection on the home wall", "info": "Used on the home page. Collection pages always show their own collection." },
+    { "type": "collection", "id": "collection", "label": "Collection on the home wall", "info": "Leave empty to use the \"Now showing\" collection (handle now-showing). Collection pages always show their own collection." },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Now showing" },
     { "type": "text", "id": "lede", "label": "Intro line" }
   ],

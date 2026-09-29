@@ -1,0 +1,24 @@
+<article class="about about-plain">
+  <div class="about-text">
+    <h1 class="about-title">{{ page.title | default: 'Contact' }}</h1>
+    {%- if page.content != blank -%}<div class="about-body rte">{{ page.content }}</div>{%- endif -%}
+    {%- form 'contact', class: 'contact-form' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="form-note" role="status">Thanks. Your message is in, and Max will reply by email.</p>
+      {%- endif -%}
+      {%- if form.errors -%}
+        <p class="form-error" role="alert">Check the highlighted fields: {{ form.errors | default_errors }}</p>
+      {%- endif -%}
+      <label for="ContactName">Name</label>
+      <input id="ContactName" type="text" name="contact[name]" autocomplete="name" value="{{ form.name }}">
+      <label for="ContactEmail">Email</label>
+      <input id="ContactEmail" type="email" name="contact[email]" autocomplete="email" required value="{{ form.email }}">
+      <label for="ContactBody">Message</label>
+      <textarea id="ContactBody" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
+      <button class="button button-solid" type="submit">Send</button>
+    {%- endform -%}
+  </div>
+</article>
+{% schema %}
+{ "name": "Contact", "settings": [] }
+{% endschema %}
