@@ -23,12 +23,12 @@
     toastTimer = setTimeout(function () { node.hidden = true; }, isError ? 6000 : 3200);
   }
 
-  async function request(url, body) {
+  async function request(url, body, signal) {
     var response = await fetch(url, body ? {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(body)
-    } : { headers: { Accept: 'application/json' } });
+    } : { headers: { Accept: 'application/json' }, signal: signal });
     var data = await response.json().catch(function () { return {}; });
     if (!response.ok) {
       var error = new Error(data.description || data.message || 'Something went wrong. Please try again.');
@@ -36,6 +36,58 @@
       throw error;
     }
     return data;
+  }
+
+
+  /* ---------- Forgiving search: partial words, missing spaces, one or two typos ---------- */
+
+  function normalize(text) {
+    return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  function withinEdits(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return false;
+    var prev = [], cur, i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur = [i];
+      var best = i;
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > max) return false;
+      prev = cur;
+    }
+    return prev[b.length] <= max;
+  }
+  // Returns a score (higher is better) or 0 when the title does not match.
+  function fuzzyScore(query, title) {
+    var q = normalize(query);
+    if (!q) return 1;
+    var t = normalize(title);
+    var words = t.split(' ');
+    var compact = t.replace(/ /g, '');
+    var score = 0;
+    var terms = q.split(' ');
+    for (var k = 0; k < terms.length; k++) {
+      var term = terms[k];
+      var best = 0;
+      for (var w = 0; w < words.length && best < 3; w++) {
+        var word = words[w];
+        if (word === term) best = 3;
+        else if (word.indexOf(term) === 0) best = Math.max(best, 2.5);
+        else if (term.length >= 3 && word.indexOf(term) > 0) best = Math.max(best, 1.5);
+        else if (term.length >= 4) {
+          var max = term.length >= 7 ? 2 : 1;
+          if (withinEdits(term, word, max) || withinEdits(term, word.slice(0, term.length), max)) best = Math.max(best, 1);
+        }
+      }
+      if (!best && term.length >= 4 && compact.indexOf(term) !== -1) best = 1.2;
+      if (!best) return 0;
+      score += best;
+    }
+    return score;
   }
 
   /* ---------- Cart ---------- */
@@ -362,7 +414,7 @@
           (!state.size || d.size === state.size) &&
           (!state.drop || d.drop === state.drop) &&
           (!state.decade || d.decade === state.decade) &&
-          (!q || d.title.indexOf(q) !== -1);
+          (!q || fuzzyScore(q, d.title) > 0);
         piece.hidden = !match;
         if (match) shown++;
       });
@@ -411,6 +463,124 @@
       searchInput.addEventListener('input', function () { state.q = searchInput.value; apply(false); });
     }
     apply(false);
+  }
+
+
+  /* ---------- Search suggestions (whole shop, sold pieces included) ---------- */
+
+  var suggestBox = $('[data-suggest]');
+  if (searchInput && suggestBox) {
+    var timer, controller, active = -1, lastQuery = '';
+    var localPieces = $$('[data-piece]').map(function (piece) {
+      var link = $('.piece-link', piece);
+      var img = $('.piece-img', piece);
+      return {
+        title: $('.label-year', piece).textContent.trim() + ' ' + $('.label-name', piece).textContent.trim(),
+        url: link && link.getAttribute('href'), image: img && img.getAttribute('src'),
+        detail: $('.label-size', piece).textContent.trim(), state: piece.dataset.state, price: Number(piece.dataset.price)
+      };
+    });
+    var options = function () { return $$('[role="option"]', suggestBox); };
+    var closeSuggest = function () {
+      suggestBox.hidden = true;
+      searchInput.setAttribute('aria-expanded', 'false');
+      searchInput.removeAttribute('aria-activedescendant');
+      active = -1;
+    };
+    var highlight = function (index) {
+      var items = options();
+      if (!items.length) return;
+      active = (index + items.length) % items.length;
+      items.forEach(function (item, i) { item.setAttribute('aria-selected', String(i === active)); });
+      searchInput.setAttribute('aria-activedescendant', items[active].id);
+      items[active].scrollIntoView({ block: 'nearest' });
+    };
+    var render = function (query, results) {
+      suggestBox.innerHTML = '';
+      if (!results.length) {
+        suggestBox.innerHTML = '<p class="suggest-empty"></p>';
+        $('.suggest-empty', suggestBox).textContent = 'No pieces match \u201c' + query + '\u201d. Check the spelling or try a year like 1997.';
+      }
+      results.slice(0, 6).forEach(function (r, i) {
+        var a = document.createElement('a');
+        a.className = 'suggest-item';
+        a.id = 'suggest-' + i;
+        a.href = r.url;
+        a.setAttribute('role', 'option');
+        a.setAttribute('aria-selected', 'false');
+        a.innerHTML = '<img alt="" width="44" height="44"><span class="suggest-name"><span></span><small></small></span><span class="suggest-meta"></span>';
+        var img = $('img', a);
+        if (r.image) img.src = r.image; else img.remove();
+        $('.suggest-name > span', a).textContent = r.title;
+        $('.suggest-name small', a).textContent = r.detail || '';
+        var meta = $('.suggest-meta', a);
+        if (r.state === 'sold') meta.innerHTML = '<span class="dot" aria-hidden="true"></span>Sold';
+        else if (r.state === 'upcoming') meta.textContent = 'Coming soon';
+        else meta.textContent = money(r.price);
+        suggestBox.appendChild(a);
+      });
+      var all = document.createElement('a');
+      all.className = 'suggest-all';
+      all.id = 'suggest-all';
+      all.href = '/search?type=product&q=' + encodeURIComponent(query);
+      all.setAttribute('role', 'option');
+      all.setAttribute('aria-selected', 'false');
+      all.textContent = 'See every result for \u201c' + query + '\u201d \u2192';
+      suggestBox.appendChild(all);
+      suggestBox.hidden = false;
+      searchInput.setAttribute('aria-expanded', 'true');
+      active = -1;
+    };
+    var fetchSuggest = async function (query) {
+      if (controller) controller.abort();
+      controller = new AbortController();
+      var local = localPieces.map(function (p) { return { p: p, score: fuzzyScore(query, p.title) }; })
+        .filter(function (x) { return x.score > 0; })
+        .sort(function (a, b) { return b.score - a.score; })
+        .map(function (x) { return x.p; });
+      var remote = [];
+      try {
+        var data = await request('/search/suggest.json?q=' + encodeURIComponent(query) +
+          '&resources[type]=product&resources[limit]=10&resources[options][unavailable_products]=show', null, controller.signal);
+        remote = ((data.resources && data.resources.results && data.resources.results.products) || []).map(function (p) {
+          var price = typeof p.price === 'string' ? Math.round(parseFloat(p.price.replace(/[^\d.]/g, '')) * 100) : Number(p.price) || 0;
+          return { title: p.title, url: p.url, image: p.image || (p.featured_image && p.featured_image.url), state: p.available ? 'available' : 'sold', price: price };
+        });
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+      }
+      if (query !== lastQuery) return;
+      var seen = {};
+      var merged = [];
+      local.concat(remote).forEach(function (r) {
+        var key = (r.url || '').split('?')[0];
+        if (!key || seen[key]) return;
+        seen[key] = true;
+        merged.push(r);
+      });
+      // Shopify's own matches come back ranked; keep the best local matches first on a wall.
+      render(query, merged);
+    };
+    searchInput.addEventListener('input', function () {
+      var query = searchInput.value.trim();
+      lastQuery = query;
+      clearTimeout(timer);
+      if (query.length < 2) { closeSuggest(); return; }
+      timer = setTimeout(function () { fetchSuggest(query); }, 150);
+    });
+    searchInput.addEventListener('keydown', function (event) {
+      if (suggestBox.hidden) return;
+      if (event.key === 'ArrowDown') { event.preventDefault(); highlight(active + 1); }
+      else if (event.key === 'ArrowUp') { event.preventDefault(); highlight(active - 1); }
+      else if (event.key === 'Escape') { closeSuggest(); }
+      else if (event.key === 'Enter' && active >= 0) { event.preventDefault(); location.href = options()[active].href; }
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('[data-search-form]')) closeSuggest();
+    });
+    searchInput.addEventListener('focus', function () {
+      if (searchInput.value.trim().length >= 2 && suggestBox.children.length) { suggestBox.hidden = false; searchInput.setAttribute('aria-expanded', 'true'); }
+    });
   }
 
   /* ---------- Piece page: views, zoom, back ---------- */
@@ -470,6 +640,24 @@
       }
     } catch (_) { /* keep the plain link */ }
   }
+
+  // Name the clicked shirt so the browser can fly it into the piece page (see gallery.css).
+  addEventListener('pageswap', function (event) {
+    if (!event.viewTransition || !event.activation || !event.activation.entry) return;
+    var to = new URL(event.activation.entry.url);
+    var onPiece = location.pathname.indexOf('/products/') === 0;
+    if (!onPiece && to.pathname.indexOf('/products/') === 0) {
+      var link = $$('.piece-link').filter(function (a) { return a.pathname === to.pathname; })[0];
+      var img = link && $('.piece-img', link);
+      if (img && img.getBoundingClientRect().bottom > 0) img.style.viewTransitionName = 'piece';
+    } else if (onPiece && to.pathname.indexOf('/products/') !== 0) {
+      document.documentElement.classList.add('vt-back');
+    }
+  });
+  addEventListener('pageshow', function () {
+    $$('.piece-img').forEach(function (img) { img.style.viewTransitionName = ''; });
+    document.documentElement.classList.remove('vt-back');
+  });
 
   refreshCart();
 })();

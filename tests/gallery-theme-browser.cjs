@@ -42,6 +42,26 @@ async function noOverflow(page, label) {
     assert.equal(await visible.count(), total);
     step('search "bulls" finds the piece live; no match shows the empty state; Clear filters restores');
 
+    // Forgiving search: typos on the wall, and whole-shop suggestions (sold pieces included)
+    await page.fill('[data-search-input]', 'metalica');
+    assert.ok(await visible.count() >= 1, 'typo still filters the wall');
+    assert.ok((await visible.allInnerTexts()).every(t => /Metallica/.test(t)));
+    await page.waitForSelector('[data-suggest]:not([hidden]) .suggest-item');
+    assert.match(await page.locator('.suggest-item').first().innerText(), /Metallica/);
+    await page.fill('[data-search-input]', 'goosbumps');
+    await page.waitForFunction(() => /Goosebumps/.test(document.querySelector('[data-suggest]').innerText));
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await page.waitForURL(/\/products\/90s-goosebumps/);
+    step('typo search: "metalica" filters the wall, "goosbumps" suggests Goosebumps and Enter opens it');
+
+    // Size and measurements on the label and in the sidebar
+    assert.match(await page.locator('.placard-facts').innerText(), /Size\s+XL[\s\S]*Price[\s\S]*Measurements\s+\d+(\.\d+)?\/\d+/i);
+    assert.equal(await page.locator('.placard-facts').getByText('Edition').count(), 0);
+    await page.goto(base + '/');
+    assert.match(await page.locator('.label-size').first().innerText(), /^[A-Z0-9]+ \| \d+(\.\d+)?\/\d+(\.\d+)?$/);
+    step('labels read "XL | 23/30"; the sidebar shows Size, Price, Measurements');
+
     // Whole-shop search on Enter
     await page.fill('[data-search-input]', 'goosebumps');
     await page.press('[data-search-input]', 'Enter');
@@ -81,6 +101,14 @@ async function noOverflow(page, label) {
     assert.equal(await page.locator('[data-buy]').count(), 0);
     assert.match(await page.locator('.sold-line').innerText(), /Sold/);
     step('sold pieces show a red dot and Sold, and cannot be added');
+
+    // Wall to piece zoom transition (off when the visitor asks for reduced motion)
+    await page.goto(base + '/');
+    await page.locator('.piece-link').nth(2).click();
+    await page.waitForURL(/\/products\//);
+    const zoomed = await page.evaluate(() => document.documentElement.classList.contains('vt-in'));
+    assert.equal(zoomed, reducedMotion !== 'reduce');
+    step(reducedMotion === 'reduce' ? 'no page zoom with reduced motion' : 'opening a piece plays the zoom transition');
 
     // Piece page: acquire, zoom
     await page.goto(base + '/products/90s-goosebumps');

@@ -6,7 +6,7 @@ Gallery rebuild is built locally in `gallery-theme/` (a new theme; `hawks-closet
 - Preview: `npm run gallery`, then http://localhost:4181/ (placeholder tee on every piece, simulated cart, no Shopify writes). Screenshots and demo videos: `docs/previews/gallery/`.
 - Tests: `node tests/gallery-theme-browser.cjs` with the preview running (45 checks: desktop, phone, reduced motion). `npm run gallery:check` runs Theme Check (clean).
 - Catalog: all 175 products are sold and sit in the Archive smart collection (37 Drop 02 pieces were set from 1 to 0 on 2026-09-28; undo record `docs/archive/drop02-sold-out-2026-09-28.csv`). Store is still password-protected.
-- Milestones: 1-3 built; 4 built except the Shopify preview upload (needs Max's OK); 5 is launch day.
+- Milestones: 1-3 built; 4 built; the theme is pushed to Shopify as an unpublished theme for Max to play with; 5 is launch day (manual unlock, premium early access: see LAUNCH.md).
 
 Next, in order:
 1. Max reviews the look (direction check) and gives one feedback list.

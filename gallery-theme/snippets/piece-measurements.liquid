@@ -1,0 +1,17 @@
+{%- comment -%}
+  Outputs a piece's measurements, e.g. "23/30" (pit to pit / length, inches).
+  Uses the custom.measurements metafield when set, otherwise the start of the
+  description, which Max writes as "23/30 | tagged XL".
+{%- endcomment -%}
+{%- liquid
+  assign m = product.metafields.custom.measurements.value | default: ''
+  if m == blank
+    assign first_line = product.description | split: '</p>' | first | strip_html | strip
+    assign m = first_line | split: '|' | first | strip | remove: ' '
+    assign c = m | slice: 0
+    unless '0123456789' contains c and m contains '/'
+      assign m = ''
+    endunless
+  endif
+  echo m
+-%}

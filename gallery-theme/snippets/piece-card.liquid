@@ -32,6 +32,9 @@
   elsif product.available
     assign state = 'available'
   endif
+  capture measurements
+    render 'piece-measurements', product: product
+  endcapture
   assign quick_add = false
   if state == 'available' and product.variants.size == 1
     assign quick_add = true
@@ -50,6 +53,7 @@
   data-piece
   data-title="{{ product.title | downcase | escape }}"
   data-size="{{ size | escape }}"
+  data-fit="{{ measurements | escape }}"
   data-price="{{ product.price }}"
   data-state="{{ state }}"
   data-created="{{ product.created_at | date: '%s' }}"
@@ -70,7 +74,7 @@
       <span class="label-year mono">{% if year != blank %}{{ year }}{% else %}&nbsp;{% endif %}</span>
       <span class="label-name">{{ name }}</span>
       <span class="label-meta mono">
-        {%- if size != blank -%}<span class="label-size">{{ size }}</span>{%- endif -%}
+        <span class="label-size">{{ size }}{% if size != blank and measurements != blank %} | {% endif %}{{ measurements }}</span>
         {%- case state -%}
           {%- when 'sold' -%}<span class="label-state"><span class="dot" aria-hidden="true"></span>Sold</span>
           {%- when 'upcoming' -%}<span class="label-state">Coming soon</span>

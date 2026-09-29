@@ -90,7 +90,24 @@ main:focus { outline: none; }
   height: 36px; padding: 0 var(--s3); border: 1px solid var(--line); color: var(--muted);
   transition: border-color .2s var(--ease);
 }
+.search { position: relative; }
 .search:focus-within { border-color: var(--ink); color: var(--ink); }
+.suggest {
+  position: absolute; top: calc(100% + 6px); left: -1px; right: -1px; z-index: 35;
+  display: grid; max-height: min(70vh, 520px); overflow-y: auto;
+  background: var(--wall); border: 1px solid var(--ink); box-shadow: 0 18px 40px rgba(18, 19, 20, .12);
+  animation: rise .25s var(--ease) both;
+}
+.suggest-item { display: grid; grid-template-columns: 44px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s2) var(--s3); color: var(--ink); text-decoration: none; }
+.suggest-item + .suggest-item { border-top: 1px solid var(--line); }
+.suggest-item img { width: 44px; height: 44px; object-fit: contain; }
+.suggest-name { font-size: 14px; line-height: 1.3; }
+.suggest-name small { display: block; font: 11px var(--mono); color: var(--muted); }
+.suggest-meta { font: 12px var(--mono); white-space: nowrap; }
+.suggest-item[aria-selected="true"], .suggest-item:hover { background: var(--hush); }
+.suggest-all { display: block; padding: var(--s3); border-top: 1px solid var(--line); font: 12px var(--mono); color: var(--ink); }
+.suggest-all[aria-selected="true"], .suggest-all:hover { background: var(--hush); }
+.suggest-empty { padding: var(--s4) var(--s3); font-size: 14px; color: var(--muted); }
 .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 14px; color: var(--ink); }
 .search input::placeholder { color: var(--faint); }
 .search input::-webkit-search-cancel-button { cursor: pointer; }
@@ -230,6 +247,8 @@ main:focus { outline: none; }
 .placard-facts { margin: var(--s7) 0 var(--s6); border-top: 1px solid var(--line); font-size: 13px; }
 .placard-facts div { display: flex; justify-content: space-between; padding: var(--s3) 0; border-bottom: 1px solid var(--line); }
 .placard-facts dt { color: var(--muted); }
+.placard-facts dd { text-align: right; }
+.placard-facts dd small { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
 .placard .button { width: 100%; }
 .placard-note { margin-top: var(--s3); font-size: 14px; color: var(--muted); }
 .sold-line { display: flex; align-items: center; min-height: 52px; border: 1px solid var(--line); padding: 0 var(--s4); font: 500 13px var(--mono); }
@@ -329,6 +348,29 @@ main:focus { outline: none; }
 }
 .site-footer a { text-decoration: none; }
 .site-footer a:hover { color: var(--ink); }
+
+/* Wall to piece: the wall rushes past, the shirt flies forward into place, then the label slides in. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+.site-header { view-transition-name: site-header; }
+.stage-img { view-transition-name: piece; }
+.placard { view-transition-name: placard; }
+.vt-in .placard, .vt-in .stage-img { animation: none; }
+::view-transition-group(piece) { animation-duration: .8s; animation-timing-function: cubic-bezier(.16, .84, .24, 1); z-index: 3; }
+::view-transition-old(piece), ::view-transition-new(piece) { height: 100%; object-fit: contain; }
+::view-transition-old(root) { animation: vt-wall-forward .6s cubic-bezier(.4, 0, .2, 1) both; }
+::view-transition-new(root) { animation: vt-fade-in .45s ease both .25s; }
+::view-transition-old(placard) { animation: vt-fade-out .2s ease both; }
+::view-transition-new(placard) { animation: vt-placard-in .7s cubic-bezier(.2, .7, .2, 1) both .5s; }
+.vt-back::view-transition-old(root) { animation: vt-piece-away .45s cubic-bezier(.4, 0, .2, 1) both; }
+.vt-back::view-transition-new(root) { animation: vt-wall-return .7s cubic-bezier(.2, .7, .2, 1) both .1s; }
+@keyframes vt-wall-forward { to { opacity: 0; transform: scale(1.16); filter: blur(3px); } }
+@keyframes vt-wall-return { from { opacity: 0; transform: scale(1.08); } }
+@keyframes vt-piece-away { to { opacity: 0; transform: scale(.96); } }
+@keyframes vt-fade-in { from { opacity: 0; } }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-placard-in { from { opacity: 0; transform: translateX(48px); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

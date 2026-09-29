@@ -5,6 +5,7 @@ Default: the live theme (hawks-closet-theme). With --gallery: the gallery rebuil
 import json
 import sys
 import mimetypes
+import re
 import uuid
 from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -17,6 +18,35 @@ VARIANTS = {str(v['id']): (p, v) for p in PRODUCTS for v in p['variants']}
 CARTS = {}
 GALLERY = '--gallery' in sys.argv
 PLACEHOLDER = '/gallery-theme/assets/piece-placeholder.webp'
+
+
+def _norm(text):
+    return re.sub(r'[^a-z0-9]+', ' ', text.lower().replace("'", '')).split()
+
+
+def _close(a, b):
+    """True when a and b are at most one edit apart (stand-in for Shopify's typo tolerance)."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1] <= 1
+
+
+def suggest_score(query, title):
+    words, score = _norm(title), 0
+    for term in _norm(query):
+        if any(w.startswith(term) for w in words):
+            score += 2
+        elif len(term) >= 4 and any(_close(term, w) for w in words):
+            score += 1
+        else:
+            return 0
+    return score
 
 
 class Preview(BaseHTTPRequestHandler):
@@ -47,13 +77,14 @@ class Preview(BaseHTTPRequestHandler):
         if url.path == '/cart.js':
             return self.reply(self.cart(items), sid=sid)
         if url.path == '/search/suggest.json':
-            q = parse_qs(url.query).get('q', [''])[0].lower()
-            matches = [p for p in PRODUCTS if q in p['title'].lower()][:10]
+            q = parse_qs(url.query).get('q', [''])[0]
+            ranked = sorted(((suggest_score(q, p['title']), p) for p in PRODUCTS), key=lambda x: -x[0])
+            matches = [p for score, p in ranked if score > 0][:10]
             return self.reply({'resources': {'results': {'products': [
                 {'title': p['title'], 'url': '/products/' + p['handle'],
                  'available': any(v['available'] for v in p['variants']),
                  'price': p['variants'][0]['price'],
-                 'image': p['images'][0]['src'] if p['images'] else ''} for p in matches]}}}, sid=sid)
+                 'image': PLACEHOLDER if GALLERY else (p['images'][0]['src'] if p['images'] else '')} for p in matches]}}}, sid=sid)
         if url.path == '/checkout':
             return self.reply('<!doctype html><title>Local checkout preview</title><main style="max-width:560px;margin:15vh auto;padding:24px;font:18px/1.6 Arial;color:#121314;background:#fff"><h1>Checkout preview</h1><p>This is the local theme preview. Your test cart is saved here; no order or payment has been created.</p><a href="/">Back to the collection</a></main>', content_type='text/html', sid=sid)
         route = url.path

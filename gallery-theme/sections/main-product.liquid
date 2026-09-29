@@ -12,6 +12,9 @@
   if product.tags contains settings.upcoming_tag
     assign upcoming = true
   endif
+  capture measurements
+    render 'piece-measurements', product: product
+  endcapture
   assign single = false
   if product.variants.size == 1
     assign single = true
@@ -54,7 +57,9 @@
         <div><dt>Size</dt><dd>{{ variant.title }}</dd></div>
       {%- endif -%}
       <div><dt>Price</dt><dd data-price>{{ variant.price | default: product.price | money_without_trailing_zeros }}</dd></div>
-      <div><dt>Edition</dt><dd>One of one</dd></div>
+      {%- if measurements != blank -%}
+        <div><dt>Measurements</dt><dd>{{ measurements }}<small>Pit to pit / length, in.</small></dd></div>
+      {%- endif -%}
     </dl>
 
     {%- if upcoming -%}
@@ -85,7 +90,7 @@
 
     {%- if product.description != blank -%}
       <details class="details">
-        <summary>Details and measurements</summary>
+        <summary>Details</summary>
         <div class="rte">{{ product.description }}</div>
       </details>
     {%- endif -%}
