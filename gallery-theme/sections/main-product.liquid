@@ -1,0 +1,105 @@
+{%- liquid
+  assign first_word = product.title | split: ' ' | first
+  assign first_char = first_word | slice: 0
+  assign year = ''
+  assign name = product.title
+  if '0123456789' contains first_char
+    assign year = first_word
+    assign name = product.title | remove_first: first_word | strip
+  endif
+  assign variant = product.selected_or_first_available_variant
+  assign upcoming = false
+  if product.tags contains settings.upcoming_tag
+    assign upcoming = true
+  endif
+  assign single = false
+  if product.variants.size == 1
+    assign single = true
+  endif
+-%}
+<article class="product" data-product>
+  <a class="back text-button" href="{{ routes.root_url }}" data-back>&larr; Back to the wall</a>
+
+  <div class="product-stage">
+    <button type="button" class="stage-frame" data-zoom aria-label="View {{ product.title | escape }} larger">
+      {%- if product.featured_image -%}
+        <img class="stage-img" data-stage-img
+          src="{{ product.featured_image | image_url: width: 1400 }}"
+          srcset="{{ product.featured_image | image_url: width: 700 }} 700w, {{ product.featured_image | image_url: width: 1400 }} 1400w, {{ product.featured_image | image_url: width: 2000 }} 2000w"
+          sizes="(min-width: 900px) 58vw, 100vw"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}" width="1400" height="1400">
+      {%- else -%}
+        <span class="piece-missing">Photo coming</span>
+      {%- endif -%}
+    </button>
+    {%- if product.images.size > 1 -%}
+      <ul class="views" aria-label="Other views">
+        {%- for image in product.images -%}
+          <li>
+            <button type="button" class="view{% if forloop.first %} is-current{% endif %}" data-view="{{ image | image_url: width: 1400 }}" data-view-large="{{ image | image_url: width: 2400 }}" aria-label="View {{ forloop.index }} of {{ product.images.size }}"{% if forloop.first %} aria-current="true"{% endif %}>
+              <img src="{{ image | image_url: width: 160 }}" alt="" width="80" height="80" loading="lazy">
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+
+  <div class="placard">
+    {%- if year != blank -%}<p class="placard-year mono">{{ year }}</p>{%- endif -%}
+    <h1 class="placard-name">{{ name }}</h1>
+
+    <dl class="placard-facts mono">
+      {%- if single and variant.title != 'Default Title' -%}
+        <div><dt>Size</dt><dd>{{ variant.title }}</dd></div>
+      {%- endif -%}
+      <div><dt>Price</dt><dd data-price>{{ variant.price | default: product.price | money_without_trailing_zeros }}</dd></div>
+      <div><dt>Edition</dt><dd>One of one</dd></div>
+    </dl>
+
+    {%- if upcoming -%}
+      <button type="button" class="button button-solid" data-notify="{{ product.title | escape }}">Notify me</button>
+      <p class="placard-note">Coming soon. Get one text when it goes up.</p>
+    {%- elsif product.available -%}
+      <form class="buy" action="{{ routes.cart_add_url }}" method="post" data-buy>
+        {%- if single -%}
+          <input type="hidden" name="id" value="{{ variant.id }}">
+        {%- else -%}
+          <fieldset class="sizes">
+            <legend class="mono">Size</legend>
+            {%- for v in product.variants -%}
+              <label class="chip{% unless v.available %} is-off{% endunless %}">
+                <input type="radio" name="id" value="{{ v.id }}" data-variant-price="{{ v.price | money_without_trailing_zeros }}"{% if v.id == variant.id %} checked{% endif %}{% unless v.available %} disabled{% endunless %}>
+                {{ v.title }}
+              </label>
+            {%- endfor -%}
+          </fieldset>
+        {%- endif -%}
+        <button type="submit" class="button button-solid" data-buy-button>Acquire</button>
+        <p class="form-error" data-buy-error role="alert" hidden></p>
+      </form>
+    {%- else -%}
+      <p class="sold-line"><span class="dot" aria-hidden="true"></span>Sold</p>
+      <p class="placard-note">This piece has found its owner. It stays in the <a href="{{ routes.collections_url }}/{{ settings.archive_handle }}">archive</a>.</p>
+    {%- endif -%}
+
+    {%- if product.description != blank -%}
+      <details class="details">
+        <summary>Details and measurements</summary>
+        <div class="rte">{{ product.description }}</div>
+      </details>
+    {%- endif -%}
+  </div>
+</article>
+
+<div class="zoom" data-zoom-layer hidden>
+  <button type="button" class="text-button zoom-close" data-zoom-close>Close</button>
+  <img class="zoom-img" data-zoom-img width="2400" height="2400" alt="{{ product.title | escape }}, enlarged">
+</div>
+
+{% schema %}
+{
+  "name": "Piece",
+  "settings": []
+}
+{% endschema %}

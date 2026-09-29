@@ -1,0 +1,21 @@
+{%- assign archive_url = routes.collections_url | append: '/' | append: settings.archive_handle -%}
+<header class="site-header" id="siteHeader">
+  <a class="brand" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}, home">
+    <img src="{{ 'logo.png' | asset_url }}" width="26" height="29" alt="">
+    <span class="brand-name">Hawks Closet</span>
+  </a>
+  <nav class="site-nav" aria-label="Main">
+    <a href="{{ routes.root_url }}"{% if template.name == 'index' or template == 'index' %} aria-current="page"{% endif %}>Shop</a>
+    <a href="{{ archive_url }}"{% if collection.handle == settings.archive_handle %} aria-current="page"{% endif %}>Archive</a>
+    <a href="/pages/about"{% if page.handle == 'about' %} aria-current="page"{% endif %}>About</a>
+  </nav>
+  <form class="search" action="{{ routes.search_url | default: '/search' }}" method="get" role="search" data-search-form>
+    <label class="visually-hidden" for="siteSearch">Search pieces</label>
+    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.4"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <input id="siteSearch" type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search pieces" autocomplete="off" enterkeyhint="search" data-search-input>
+    <input type="hidden" name="type" value="product">
+  </form>
+  <button class="cart-link" type="button" data-cart-open aria-haspopup="dialog" aria-controls="cartDrawer">
+    Cart <span class="cart-count" data-cart-count>{{ cart.item_count | default: 0 }}</span>
+  </button>
+</header>

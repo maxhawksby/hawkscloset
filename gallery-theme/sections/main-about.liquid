@@ -1,0 +1,26 @@
+<article class="about">
+  <div class="about-text">
+    <p class="eyebrow mono">{{ section.settings.eyebrow }}</p>
+    <h1 class="about-title">{{ section.settings.heading }}</h1>
+    <div class="about-body">{{ section.settings.body }}</div>
+    <p><a class="text-button" href="https://instagram.com/{{ settings.instagram_handle | default: 'hawks.vtg' }}" target="_blank" rel="noopener noreferrer">@{{ settings.instagram_handle | default: 'hawks.vtg' }} &rarr;</a></p>
+  </div>
+  <figure class="about-photo">
+    {%- if section.settings.image != blank -%}
+      <img src="{{ section.settings.image | image_url: width: 1200 }}" alt="{{ section.settings.image.alt | escape }}" width="1054" height="1181" loading="lazy">
+    {%- else -%}
+      <img src="{{ 'about.jpg' | asset_url }}" alt="Maxwell, who runs Hawks Closet" width="1054" height="1181" loading="lazy">
+    {%- endif -%}
+  </figure>
+</article>
+{% schema %}
+{
+  "name": "About",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Hawks Closet, est. 2024" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "One person. One eye." },
+    { "type": "richtext", "id": "body", "label": "Story", "default": "<p>I'm Maxwell. I grew up in New Jersey with an eye for things other people walked past. Every piece here was found by hand: thrift runs, estate sales, yard sales at 6am.</p><p>No filler, no bulk. Each shirt is one of one, with a year, a story and a price.</p>" },
+    { "type": "image_picker", "id": "image", "label": "Photo" }
+  ]
+}
+{% endschema %}

@@ -1,5 +1,9 @@
-"""Local-only theme review server. Cart operations are simulated in memory."""
+"""Local-only theme review server. Cart operations are simulated in memory.
+
+Default: the live theme (hawks-closet-theme). With --gallery: the gallery rebuild (gallery-theme).
+"""
 import json
+import sys
 import mimetypes
 import uuid
 from http import cookies
@@ -11,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PRODUCTS = json.loads((ROOT / '.local/catalog-products.json').read_text())['products']
 VARIANTS = {str(v['id']): (p, v) for p in PRODUCTS for v in p['variants']}
 CARTS = {}
+GALLERY = '--gallery' in sys.argv
+PLACEHOLDER = '/gallery-theme/assets/piece-placeholder.webp'
 
 
 class Preview(BaseHTTPRequestHandler):
@@ -49,8 +55,10 @@ class Preview(BaseHTTPRequestHandler):
                  'price': p['variants'][0]['price'],
                  'image': p['images'][0]['src'] if p['images'] else ''} for p in matches]}}}, sid=sid)
         if url.path == '/checkout':
-            return self.reply('<!doctype html><title>Local checkout preview</title><main style="max-width:560px;margin:15vh auto;padding:24px;font:18px/1.6 Arial;color:#282720;background:#f5f2e9"><h1>Checkout preview</h1><p>This is the local theme preview. Your test cart is saved here; no order or payment has been created.</p><a href="/">Back to the collection</a></main>', content_type='text/html', sid=sid)
+            return self.reply('<!doctype html><title>Local checkout preview</title><main style="max-width:560px;margin:15vh auto;padding:24px;font:18px/1.6 Arial;color:#121314;background:#fff"><h1>Checkout preview</h1><p>This is the local theme preview. Your test cart is saved here; no order or payment has been created.</p><a href="/">Back to the collection</a></main>', content_type='text/html', sid=sid)
         route = url.path
+        if GALLERY:
+            return self.gallery(route, sid)
         if route == '/' or route.startswith('/collections/'):
             route = '/preview/gallery/index.html'
         elif route.startswith('/products/'):
@@ -63,6 +71,22 @@ class Preview(BaseHTTPRequestHandler):
         path = (ROOT / route.lstrip('/')).resolve()
         if not path.is_relative_to(ROOT) or not path.is_file():
             return self.reply({'error': 'Preview file not found'}, 404)
+        return self.reply(path.read_bytes(), content_type=mimetypes.guess_type(path.name)[0] or 'application/octet-stream', sid=sid)
+
+    def gallery(self, route, sid):
+        pages = ROOT / 'preview/gallery-theme'
+        if route.startswith('/gallery-theme/assets/'):
+            path = (ROOT / route.lstrip('/')).resolve()
+        elif route in ('/', ''):
+            path = pages / 'index.html'
+        elif route.startswith(('/collections/', '/products/', '/pages/')):
+            path = (pages / (route.strip('/') + '.html')).resolve()
+        else:
+            path = (pages / (route.strip('/') + '.html')).resolve()
+        allowed = (ROOT / 'gallery-theme/assets', pages)
+        if not any(path.is_relative_to(base) for base in allowed) or not path.is_file():
+            body = (pages / '404.html').read_bytes() if (pages / '404.html').is_file() else b'Not found'
+            return self.reply(body, 404, 'text/html', sid=sid)
         return self.reply(path.read_bytes(), content_type=mimetypes.guess_type(path.name)[0] or 'application/octet-stream', sid=sid)
 
     def do_POST(self):
@@ -79,8 +103,10 @@ class Preview(BaseHTTPRequestHandler):
             if not variant['available'] or key in items:
                 return self.reply({'description': 'This piece is unavailable or already in your cart.'}, 422, sid=sid)
             cents = round(float(variant['price']) * 100)
-            items[key] = {'id': variant['id'], 'key': key, 'title': product['title'],
-                          'variant_title': variant['title'], 'image': product['images'][0]['src'] if product['images'] else '',
+            image = PLACEHOLDER if GALLERY else (product['images'][0]['src'] if product['images'] else '')
+            items[key] = {'id': variant['id'], 'variant_id': variant['id'], 'key': key, 'title': product['title'],
+                          'product_title': product['title'], 'url': '/products/' + product['handle'],
+                          'variant_title': variant['title'], 'image': image,
                           'quantity': 1, 'final_price': cents, 'final_line_price': cents}
             return self.reply(items[key], sid=sid)
         if self.path == '/cart/change.js':
@@ -91,10 +117,11 @@ class Preview(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     try:
-        server = ThreadingHTTPServer(('127.0.0.1', 4180), Preview)
+        server = ThreadingHTTPServer(('127.0.0.1', 4181 if GALLERY else 4180), Preview)
     except OSError as error:
         if error.errno != 98:
             raise
         server = ThreadingHTTPServer(('127.0.0.1', 0), Preview)
-    print(f'Gallery preview: http://localhost:{server.server_port}/ (simulated cart, no Shopify writes)', flush=True)
+    label = 'Gallery rebuild' if GALLERY else 'Live theme'
+    print(f'{label} preview: http://localhost:{server.server_port}/ (simulated cart, no Shopify writes)', flush=True)
     server.serve_forever()

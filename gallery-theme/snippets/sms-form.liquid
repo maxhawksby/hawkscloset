@@ -1,0 +1,10 @@
+<form class="sms-form" id="smsForm" data-source="{{ source | default: 'Notify me' }}" data-public-key="{{ settings.klaviyo_public_key | default: 'TALeYF' | escape }}" data-list-id="{{ settings.klaviyo_sms_list_id | default: 'X9XfPw' | escape }}">
+  <label class="sr-only" for="smsPhone">Phone number</label>
+  <input class="sms-input" type="tel" id="smsPhone" aria-describedby="smsMsg" placeholder="(201) 555-0100" autocomplete="tel" inputmode="tel">
+  <label class="sms-consent">
+    <input type="checkbox" id="smsConsent">
+    <span class="sms-consent-text">I agree to receive recurring automated marketing text messages at this number. Msg &amp; data rates may apply. Reply STOP to unsubscribe.</span>
+  </label>
+  <button class="sms-btn" id="smsSubmit" type="submit">Notify me &rarr;</button>
+  <p class="sms-msg" id="smsMsg" role="status" aria-live="polite"></p>
+</form>

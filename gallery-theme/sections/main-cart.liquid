@@ -1,0 +1,29 @@
+<section class="cart-page">
+  <h1 class="wall-title">Cart</h1>
+  {%- if cart.item_count > 0 -%}
+    <form action="{{ routes.cart_url | default: '/cart' }}" method="post">
+      <ul class="cart-lines">
+        {%- for item in cart.items -%}
+          <li class="cart-line">
+            {%- if item.image -%}<img src="{{ item.image | image_url: width: 160 }}" alt="" width="80" height="80">{%- endif -%}
+            <div>
+              <a href="{{ item.url }}">{{ item.product.title }}</a>
+              <p class="mono">{{ item.variant.title }} &middot; {{ item.final_line_price | money_without_trailing_zeros }}</p>
+              <a class="text-button" href="{{ item.url_to_remove }}">Remove</a>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+      <p class="drawer-total"><span>Subtotal</span><span class="mono">{{ cart.total_price | money_without_trailing_zeros }}</span></p>
+      <button class="button button-solid" type="submit" name="checkout">Checkout</button>
+    </form>
+  {%- else -%}
+    <div class="empty">
+      <p class="empty-title">Your cart is empty.</p>
+      <a class="text-button" href="{{ routes.root_url }}">Back to the wall</a>
+    </div>
+  {%- endif -%}
+</section>
+{% schema %}
+{ "name": "Cart", "settings": [] }
+{% endschema %}

@@ -1,0 +1,81 @@
+{%- comment -%}
+  Launch screen: the Shopify password page, and the whole site while the launch gate is on.
+  password_form: true on the Shopify password page only.
+{%- endcomment -%}
+<link rel="stylesheet" href="{{ 'password.css' | asset_url }}">
+<script src="{{ 'drop-countdown.js' | asset_url }}" defer></script>
+<script src="{{ 'password-signup.js' | asset_url }}" defer></script>
+<div class="screen" style="--password-background: url('{{ 'password-background.webp' | asset_url }}');">
+  <div class="bg" aria-hidden="true"></div>
+  {%- if settings.launch_video_desktop != blank -%}
+    <div class="bg-video bg-video-desktop{% if settings.launch_video_mobile == blank %} bg-video-all{% endif %}" aria-hidden="true">
+      {{ settings.launch_video_desktop | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, image_size: '1920x' }}
+    </div>
+  {%- endif -%}
+  {%- if settings.launch_video_mobile != blank -%}
+    <div class="bg-video bg-video-mobile{% if settings.launch_video_desktop == blank %} bg-video-all{% endif %}" aria-hidden="true">
+      {{ settings.launch_video_mobile | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, image_size: '1080x' }}
+    </div>
+  {%- endif -%}
+  <div class="bg-overlay" aria-hidden="true"></div>
+  <div class="scene-light" aria-hidden="true"></div>
+
+  <!-- Password — top left -->
+  {%- if password_form -%}
+  {% form 'storefront_password' %}
+    <div class="pw-corner">
+      <span class="pw-corner-label">Early access</span>
+      {% if form.errors %}
+        <p class="pw-error">Wrong password.</p>
+      {% endif %}
+      <input
+        class="pw-input"
+        aria-label="Store password"
+        type="password"
+        name="password"
+        placeholder="Password"
+        autocomplete="current-password">
+      <button class="pw-btn-ghost" type="submit">Enter &rarr;</button>
+    </div>
+  {% endform %}
+  {%- endif -%}
+
+  <!-- Logo — top center -->
+  <div class="logo-wrap">
+    <img class="logo-img" src="{{ 'logo.png' | asset_url }}" width="32" height="36" alt="Hawks Closet">
+  </div>
+
+  <!-- Timer + SMS — centered as one unit -->
+  <main class="center-block">
+
+    <section class="countdown-section" aria-label="Launch" data-drop-countdown data-drop-at="{{ settings.next_drop_at | escape }}" data-time-zone="America/New_York"{% unless password_form %} data-open-on-elapsed{% endunless %}>
+      <h1 class="countdown-eyebrow" data-drop-status>The gallery opens in</h1>
+      <div class="countdown-stage">
+        <div class="countdown-grid" role="timer" aria-label="Time until the gallery opens" aria-live="off">
+          <div class="countdown-unit"><span class="countdown-num" data-unit="days">--</span><span class="countdown-label">Days</span></div>
+          <div class="countdown-unit"><span class="countdown-num" data-unit="hours">--</span><span class="countdown-label">Hrs</span></div>
+          <div class="countdown-unit"><span class="countdown-num" data-unit="minutes">--</span><span class="countdown-label">Min</span></div>
+          <div class="countdown-unit"><span class="countdown-num" data-unit="seconds">--</span><span class="countdown-label">Sec</span></div>
+        </div>
+      </div>
+      {% if settings.next_drop_at != blank %}
+        <time class="countdown-date" data-drop-date datetime="{{ settings.next_drop_at | escape }}">{{ settings.next_drop_at | date: '%B %d, %Y at %I:%M %p %Z' }}</time>
+      {% else %}
+        <p class="countdown-date">Next drop date to be announced.</p>
+      {% endif %}
+    </section>
+
+    <div class="sms-section">
+      <p class="sms-headline">Get a text when it opens.</p>
+      <p class="sms-sub">One text at launch. Nothing else.</p>
+      {% render 'sms-form', source: 'Lock Screen' %}
+      <noscript><p class="sms-sub">Enable JavaScript to sign up for texts, or follow @hawks.vtg for updates.</p></noscript>
+    </div>
+
+  </main>
+
+  <!-- Instagram — bottom center -->
+  <p class="ig-line">
+    Follow the drop &middot; <a href="https://instagram.com/{{ settings.instagram_handle | default: 'hawks.vtg' }}" target="_blank" rel="noopener noreferrer">@{{ settings.instagram_handle | default: 'hawks.vtg' }}</a>
+  </p>
+</div>

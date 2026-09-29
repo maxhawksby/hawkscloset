@@ -1,0 +1,93 @@
+{%- liquid
+  if collection
+    assign wall = collection
+  elsif section.settings.collection != blank
+    assign wall = section.settings.collection
+  else
+    assign wall = collections.all
+  endif
+  assign archive = false
+  if wall.handle == settings.archive_handle
+    assign archive = true
+  endif
+  assign heading = section.settings.heading | default: wall.title
+  if collection
+    assign heading = wall.title
+  endif
+-%}
+<section class="wall{% if archive %} wall-archive{% endif %}" data-wall{% if archive %} data-archive{% endif %} aria-labelledby="wallTitle-{{ section.id }}">
+  <div class="wall-intro">
+    <h1 class="wall-title" id="wallTitle-{{ section.id }}">{{ heading }}</h1>
+    <p class="wall-count mono" data-count aria-live="polite">
+      {%- if archive -%}
+        {{ wall.products_count }} pieces, all sold
+      {%- else -%}
+        {{ wall.products_count }} {{ wall.products_count | pluralize: 'piece', 'pieces' }}
+      {%- endif -%}
+    </p>
+    {%- if archive -%}
+      <p class="wall-lede">Every piece that has left the walls. Still here to look at.</p>
+    {%- elsif section.settings.lede != blank -%}
+      <p class="wall-lede">{{ section.settings.lede }}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="toolbar" data-toolbar hidden>
+    <div class="toolbar-row">
+      {%- unless archive -%}
+        <button type="button" class="chip chip-toggle" data-filter-available aria-pressed="false">Available</button>
+      {%- endunless -%}
+      <div class="chip-group" role="group" aria-label="Size" data-chips="size"></div>
+      {%- if archive -%}
+        <div class="chip-group" role="group" aria-label="Drop" data-chips="drop"></div>
+        <div class="chip-group" role="group" aria-label="Decade" data-chips="decade"></div>
+      {%- endif -%}
+    </div>
+    <label class="sort">
+      <span class="visually-hidden">Sort</span>
+      <select data-sort>
+        <option value="featured">{% if archive %}Newest first{% else %}As hung{% endif %}</option>
+        <option value="price-desc">Price, high to low</option>
+        <option value="price-asc">Price, low to high</option>
+        <option value="year-asc">Oldest year first</option>
+        <option value="year-desc">Newest year first</option>
+      </select>
+    </label>
+  </div>
+
+  {%- paginate wall.products by 250 -%}
+    {%- if wall.products.size > 0 -%}
+      <ul class="grid" data-grid>
+        {%- for product in wall.products -%}
+          {% render 'piece-card', product: product, index: forloop.index0 %}
+        {%- endfor -%}
+      </ul>
+      <div class="empty" data-empty hidden>
+        <p class="empty-title">Nothing on the wall matches.</p>
+        <p class="empty-sub" data-empty-detail></p>
+        <button type="button" class="text-button" data-clear>Clear filters</button>
+      </div>
+      {%- if paginate.next -%}
+        <p class="more"><a class="text-button" href="{{ paginate.next.url }}">Next wall &rarr;</a></p>
+      {%- endif -%}
+    {%- else -%}
+      <div class="empty empty-wall">
+        <p class="empty-title">New pieces are being hung.</p>
+        <p class="empty-sub">Get one text when they go up.</p>
+        <button type="button" class="button button-solid" data-notify="New pieces">Notify me</button>
+      </div>
+    {%- endif -%}
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "Wall of pieces",
+  "settings": [
+    { "type": "collection", "id": "collection", "label": "Collection on the home wall", "info": "Used on the home page. Collection pages always show their own collection." },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Now showing" },
+    { "type": "text", "id": "lede", "label": "Intro line" }
+  ],
+  "presets": [{ "name": "Wall of pieces" }]
+}
+{% endschema %}

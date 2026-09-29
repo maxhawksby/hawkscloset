@@ -1,0 +1,10 @@
+<dialog class="notify" id="notifyDialog" aria-labelledby="notifyTitle">
+  <div class="notify-inner">
+    <p class="eyebrow mono" data-notify-piece>Coming soon</p>
+    <h2 id="notifyTitle">Get a text when it goes up.</h2>
+    <p class="notify-sub">One text when new pieces are hung. Nothing else.</p>
+    {% render 'sms-form', source: 'Notify me' %}
+    <button type="button" class="text-button notify-close" data-notify-close>Close</button>
+  </div>
+</dialog>
+<script src="{{ 'password-signup.js' | asset_url }}" defer></script>

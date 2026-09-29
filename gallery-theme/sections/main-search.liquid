@@ -1,0 +1,26 @@
+<section class="wall" data-wall data-search-results aria-labelledby="searchTitle">
+  <div class="wall-intro">
+    <h1 class="wall-title" id="searchTitle">{% if search.terms != blank %}&ldquo;{{ search.terms | escape }}&rdquo;{% else %}Search{% endif %}</h1>
+    <p class="wall-count mono" data-count aria-live="polite">{{ search.results_count }} {{ search.results_count | pluralize: 'piece', 'pieces' }}</p>
+  </div>
+  {%- paginate search.results by 48 -%}
+    {%- assign shown = 0 -%}
+    <ul class="grid" data-grid>
+      {%- for item in search.results -%}
+        {%- if item.object_type == 'product' -%}
+          {% render 'piece-card', product: item, index: shown %}
+          {%- assign shown = shown | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+    <div class="empty" data-empty{% if shown > 0 %} hidden{% endif %}>
+      <p class="empty-title">No pieces match{% if search.terms != blank %} &ldquo;{{ search.terms | escape }}&rdquo;{% endif %}.</p>
+      <p class="empty-sub">Try part of a name, a year like 1997, or a band.</p>
+      <a class="text-button" href="{{ routes.collections_url }}/{{ settings.archive_handle }}">Browse the archive</a>
+    </div>
+    {%- if paginate.next -%}<p class="more"><a class="text-button" href="{{ paginate.next.url }}">More results &rarr;</a></p>{%- endif -%}
+  {%- endpaginate -%}
+</section>
+{% schema %}
+{ "name": "Search results", "settings": [] }
+{% endschema %}

@@ -1,0 +1,15 @@
+<div class="drawer-scrim" data-cart-close hidden></div>
+<aside class="drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" aria-hidden="true" tabindex="-1">
+  <div class="drawer-head">
+    <h2 id="cartTitle">Cart</h2>
+    <button type="button" class="text-button" data-cart-close>Close</button>
+  </div>
+  <div class="drawer-body" data-cart-body aria-live="polite">
+    <p class="drawer-note">Loading your cart&hellip;</p>
+  </div>
+  <div class="drawer-foot" data-cart-foot hidden>
+    <div class="drawer-total"><span>Subtotal</span><span class="mono" data-cart-total></span></div>
+    <p class="drawer-note">Shipping and taxes at checkout. All sales are final.</p>
+    <a class="button button-solid" href="/checkout" data-checkout>Checkout</a>
+  </div>
+</aside>

@@ -1,0 +1,82 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Hawks Closet Gallery",
+    "theme_version": "1.0.0",
+    "theme_author": "Hawks Closet",
+    "theme_documentation_url": "https://hawkscloset.com",
+    "theme_support_url": "https://hawkscloset.com"
+  },
+  {
+    "name": "Gallery",
+    "settings": [
+      {
+        "type": "text",
+        "id": "archive_handle",
+        "label": "Archive collection handle",
+        "default": "archive",
+        "info": "This collection gets the archive view: filter by drop and decade."
+      },
+      {
+        "type": "text",
+        "id": "upcoming_tag",
+        "label": "Upcoming piece tag",
+        "default": "upcoming",
+        "info": "Pieces with this tag show as Coming soon with a Notify me button instead of Acquire."
+      },
+      {
+        "type": "text",
+        "id": "instagram_handle",
+        "label": "Instagram handle",
+        "default": "hawks.vtg",
+        "info": "Without the @ symbol"
+      }
+    ]
+  },
+  {
+    "name": "Launch",
+    "settings": [
+      {
+        "type": "text",
+        "id": "next_drop_at",
+        "label": "Launch date and time",
+        "default": "2026-10-16T12:00:00-04:00",
+        "info": "ISO date with timezone offset. October 16 at noon New York: 2026-10-16T12:00:00-04:00."
+      },
+      {
+        "type": "checkbox",
+        "id": "launch_gate",
+        "label": "Show the launch screen until the launch time",
+        "default": false,
+        "info": "For launching without the Shopify password: every page shows the countdown until the launch time, then the gallery opens by itself. Schedule new products to publish at the same time so nothing is buyable early."
+      },
+      {
+        "type": "video",
+        "id": "launch_video_desktop",
+        "label": "Launch video (desktop, 16:9)"
+      },
+      {
+        "type": "video",
+        "id": "launch_video_mobile",
+        "label": "Launch video (phone, 9:16)"
+      }
+    ]
+  },
+  {
+    "name": "SMS signup",
+    "settings": [
+      {
+        "type": "text",
+        "id": "klaviyo_public_key",
+        "label": "Klaviyo public API key",
+        "info": "Klaviyo > Settings > API Keys. The public key is safe to expose."
+      },
+      {
+        "type": "text",
+        "id": "klaviyo_sms_list_id",
+        "label": "Klaviyo SMS list ID",
+        "info": "Klaviyo > Audience > Lists > your list > the ID in the URL."
+      }
+    ]
+  }
+]

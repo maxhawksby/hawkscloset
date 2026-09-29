@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-about",
+      "settings": {
+        "eyebrow": "Hawks Closet, est. 2024",
+        "heading": "One person. One eye.",
+        "body": "<p>I'm Maxwell. I grew up in New Jersey with an eye for things other people walked past. Every piece here was found by hand: thrift runs, estate sales, yard sales at 6am.</p><p>No filler, no bulk. Each shirt is one of one, with a year, a story and a price.</p>"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

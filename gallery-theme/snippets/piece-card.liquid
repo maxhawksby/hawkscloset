@@ -1,0 +1,87 @@
+{%- comment -%}
+  One piece on the wall. Titles lead with their year ("1997 Chicago Bulls Rap Tee",
+  "90s Goosebumps"), which becomes the label's year line.
+{%- endcomment -%}
+{%- liquid
+  assign first_word = product.title | split: ' ' | first
+  assign first_char = first_word | slice: 0
+  assign year = ''
+  assign name = product.title
+  if '0123456789' contains first_char
+    assign year = first_word
+    assign name = product.title | remove_first: first_word | strip
+  endif
+  assign variant = product.selected_or_first_available_variant
+  assign size = variant.title
+  if size == 'Default Title'
+    assign size = ''
+  endif
+  assign drop = ''
+  for tag in product.tags
+    if tag contains 'drop-'
+      assign drop = tag
+    endif
+  endfor
+  assign upcoming = false
+  if product.tags contains settings.upcoming_tag
+    assign upcoming = true
+  endif
+  assign state = 'sold'
+  if upcoming
+    assign state = 'upcoming'
+  elsif product.available
+    assign state = 'available'
+  endif
+  assign quick_add = false
+  if state == 'available' and product.variants.size == 1
+    assign quick_add = true
+  endif
+  assign decade = ''
+  if year != blank
+    assign digits = year | remove: "'" | remove: 's'
+    if digits.size == 2
+      assign digits = '19' | append: digits
+    endif
+    assign decade = digits | slice: 0, 3 | append: '0s'
+  endif
+  assign i = index | default: 0 | at_most: 12
+-%}
+<li class="piece" style="--i: {{ i }}"
+  data-piece
+  data-title="{{ product.title | downcase | escape }}"
+  data-size="{{ size | escape }}"
+  data-price="{{ product.price }}"
+  data-state="{{ state }}"
+  data-created="{{ product.created_at | date: '%s' }}"
+  data-drop="{{ drop }}"
+  data-decade="{{ decade }}">
+  <a class="piece-link" href="{{ product.url }}">
+    <span class="piece-stage">
+      {%- if product.featured_image -%}
+        <img class="piece-img" src="{{ product.featured_image | image_url: width: 720 }}"
+          srcset="{{ product.featured_image | image_url: width: 360 }} 360w, {{ product.featured_image | image_url: width: 720 }} 720w, {{ product.featured_image | image_url: width: 1080 }} 1080w"
+          sizes="(min-width: 1100px) 22vw, (min-width: 700px) 30vw, 46vw"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}" loading="{% if index < 8 %}eager{% else %}lazy{% endif %}" width="720" height="720">
+      {%- else -%}
+        <span class="piece-missing" aria-hidden="true">Photo coming</span>
+      {%- endif -%}
+    </span>
+    <span class="label">
+      <span class="label-year mono">{% if year != blank %}{{ year }}{% else %}&nbsp;{% endif %}</span>
+      <span class="label-name">{{ name }}</span>
+      <span class="label-meta mono">
+        {%- if size != blank -%}<span class="label-size">{{ size }}</span>{%- endif -%}
+        {%- case state -%}
+          {%- when 'sold' -%}<span class="label-state"><span class="dot" aria-hidden="true"></span>Sold</span>
+          {%- when 'upcoming' -%}<span class="label-state">Coming soon</span>
+          {%- else -%}<span class="label-price">{{ product.price | money_without_trailing_zeros }}</span>
+        {%- endcase -%}
+      </span>
+    </span>
+  </a>
+  {%- if quick_add -%}
+    <button type="button" class="quick-add" data-add="{{ variant.id }}" aria-label="Add {{ product.title | escape }}, size {{ size | escape }}, to cart">Add</button>
+  {%- elsif state == 'upcoming' -%}
+    <button type="button" class="quick-add" data-notify="{{ product.title | escape }}">Notify me</button>
+  {%- endif -%}
+</li>

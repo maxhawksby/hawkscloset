@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>{% if page_title != blank %}{{ page_title | escape }} | {% endif %}{{ shop.name | escape }}</title>
+  {%- if page_description != blank -%}<meta name="description" content="{{ page_description | escape }}">{%- endif -%}
+  {{ 'hanken-grotesk.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
+  <link rel="stylesheet" href="{{ 'gallery.css' | asset_url }}">
+  <script src="{{ 'gallery.js' | asset_url }}" defer></script>
+  {{ content_for_header }}
+</head>
+{%- liquid
+  assign gated = false
+  if settings.launch_gate and settings.next_drop_at != blank
+    assign now_s = 'now' | date: '%s' | plus: 0
+    assign launch_s = settings.next_drop_at | date: '%s' | plus: 0
+    if launch_s > now_s
+      assign gated = true
+    endif
+  endif
+-%}
+<body class="template-{{ template.name | default: template }}{% if gated %} is-gated{% endif %}">
+  {%- if gated -%}
+    {% render 'launch-screen', password_form: false %}
+  {%- else -%}
+    <a class="skip" href="#main">Skip to the pieces</a>
+    {% render 'site-header' %}
+    <main id="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+    {% render 'site-footer' %}
+    {% render 'cart-drawer' %}
+    {% render 'notify-dialog' %}
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  {%- endif -%}
+</body>
+</html>
