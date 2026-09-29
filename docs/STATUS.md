@@ -5,6 +5,8 @@ The gallery theme is finished and on Shopify as the unpublished theme **Hawks Cl
 
 Next: **listings.** Max sends flat-lay photos and details; build a Shopify listing skill (via /new-skill in agent-hq) that follows [LISTING.md](LISTING.md) and puts each piece in the `now-showing` collection. The home wall shows that collection automatically; until it has pieces, the home page says "New pieces are being hung".
 
+Also to do: **redo the lock screen** (the password page with the countdown and Early access box, `gallery-theme/snippets/launch-screen.liquid`) so it matches the gallery look. Max asked for this 2026-09-29; not started.
+
 Then: launch per [LAUNCH.md](LAUNCH.md) (premium early access with the store password, Max unlocks by hand at noon, Friday Oct 16).
 
 State:
